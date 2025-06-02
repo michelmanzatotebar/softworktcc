@@ -1,0 +1,31 @@
+import 'pessoa.dart';
+import 'solicitacao.dart';
+
+class PrestadorAutonomo extends Pessoa {
+  Solicitacao? solicitacao;
+
+  PrestadorAutonomo({
+    required super.id,
+    required super.nome,
+    required super.telefone,
+    required super.senha,
+    required super.email,
+    required super.cpfCnpj,
+    required super.tipoConta,
+    required super.idade,
+    this.solicitacao,
+  });
+
+  PrestadorAutonomo.fromMap(Map<String, dynamic> map)
+      : solicitacao = map['solicitacao'] != null
+      ? Solicitacao.fromMap(map['solicitacao'])
+      : null,
+        super.fromMap(map);
+
+  @override
+  Map<String, dynamic> toMap() {
+    final map = super.toMap();
+    map['solicitacao'] = solicitacao?.toMap();
+    return map;
+  }
+}

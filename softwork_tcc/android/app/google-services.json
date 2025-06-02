@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "838033109119",
+    "firebase_url": "https://softworktcc-default-rtdb.firebaseio.com",
+    "project_id": "softworktcc",
+    "storage_bucket": "softworktcc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838033109119:android:73d9b4f2d7fd158a240f4a",
+        "android_client_info": {
+          "package_name": "soft.work.softwork_tcc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZhhSD3uN-8WFiE_gSXt0x6o_VPabE_qE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
