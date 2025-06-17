@@ -13,7 +13,12 @@
           "package_name": "soft.work.softwork_tcc"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "838033109119-2rs5n8lasden3ctrd1a6aphnbegpmbfq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCZhhSD3uN-8WFiE_gSXt0x6o_VPabE_qE"
@@ -21,7 +26,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "838033109119-2rs5n8lasden3ctrd1a6aphnbegpmbfq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "838033109119-a5elmpo1lv1tc844728vbth75v4t1c5d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "soft.work.softworkTcc"
+              }
+            }
+          ]
         }
       }
     }

@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart'; // Gerado pelo flutterfire configure
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    print("Firebase inicializado com sucesso!");
+  } catch (e) {
+    print("Erro ao inicializar Firebase: $e");
+  }
+
   runApp(MyApp());
 }
 
@@ -18,7 +25,12 @@ class MyApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(title: Text('Firebase Conectado')),
         body: Center(
-          child: Text('Firebase está pronto para uso!'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Firebase está pronto para uso!'),
+            ],
+          ),
         ),
       ),
     );
