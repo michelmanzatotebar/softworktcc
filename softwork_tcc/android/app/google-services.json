@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "838033109119-kibe5hltmaip0v948bm4s2953rtntn30.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "soft.work.softwork_tcc",
+            "certificate_hash": "d91f74a117e262b36a09036f5ec2f97e64a14e6c"
+          }
+        },
+        {
           "client_id": "838033109119-2rs5n8lasden3ctrd1a6aphnbegpmbfq.apps.googleusercontent.com",
           "client_type": 3
         }
