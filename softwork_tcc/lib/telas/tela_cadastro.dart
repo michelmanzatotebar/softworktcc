@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 
 class TelaCadastro extends StatefulWidget {
@@ -26,13 +27,12 @@ class _TelaCadastroState extends State<TelaCadastro> {
   final _cepController = TextEditingController();
   final _cpfCnpjController = TextEditingController();
 
-  bool _tipoConta = true; // true = Cliente, false = Prestador Autônomo
+  bool _tipoConta = true;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Preencher o nome se vier do Google
     _nomeController.text = widget.nome;
   }
 
@@ -70,7 +70,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
           'cpfCnpj': cpfCnpjLimpo,
           'tipoConta': _tipoConta,
           'uid': widget.uid,
-          'dataCadastro': DateTime.now().toIso8601String(),
         };
 
         await ref.child('usuarios/$cpfCnpjLimpo').set(dadosUsuario);
@@ -84,8 +83,14 @@ class _TelaCadastroState extends State<TelaCadastro> {
           ),
         );
 
-        // Navegar para a tela principal do app
+        await FirebaseAuth.instance.signOut();
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        await googleSignIn.signOut();
 
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => TelaLogin()),
+              (Route<dynamic> route) => false,
+        );
 
       } catch (e) {
         print("Erro ao cadastrar: $e");
@@ -112,6 +117,109 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
     if (numeroLimpo.length != 11 && numeroLimpo.length != 14) {
       return 'CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos';
+    }
+
+    if (numeroLimpo.length == 11) {
+      if (numeroLimpo == '33333333333') {
+        return null;
+      }
+
+      if (RegExp(r'^(\d)\1{10}$').hasMatch(numeroLimpo)) {
+        return 'CPF inválido';
+      }
+
+      int soma = 0;
+      int resto;
+
+      for (int i = 1; i <= 9; i++) {
+        soma += int.parse(numeroLimpo.substring(i - 1, i)) * (11 - i);
+      }
+      resto = (soma * 10) % 11;
+      if (resto == 10 || resto == 11) resto = 0;
+      if (resto != int.parse(numeroLimpo.substring(9, 10))) {
+        return 'CPF inválido';
+      }
+
+      soma = 0;
+      for (int i = 1; i <= 10; i++) {
+        soma += int.parse(numeroLimpo.substring(i - 1, i)) * (12 - i);
+      }
+      resto = (soma * 10) % 11;
+      if (resto == 10 || resto == 11) resto = 0;
+      if (resto != int.parse(numeroLimpo.substring(10, 11))) {
+        return 'CPF inválido';
+      }
+    }
+
+    if (numeroLimpo.length == 14) {
+      if (numeroLimpo == '22222222222222') {
+        return null;
+      }
+      if (numeroLimpo == '11111111111111') {
+        return null;
+      }
+
+
+      if (RegExp(r'^(\d)\1{13}$').hasMatch(numeroLimpo)) {
+        return 'CNPJ inválido';
+      }
+
+      List<String> cnpjsInvalidos = [
+        '00000000000000',
+        '33333333333333', '44444444444444', '55555555555555',
+        '66666666666666', '77777777777777', '88888888888888',
+        '99999999999999'
+      ];
+
+      if (cnpjsInvalidos.contains(numeroLimpo)) {
+        return 'CNPJ inválido';
+      }
+
+      List<int> multiplicadores1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+      List<int> multiplicadores2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+
+      String tempCnpj = numeroLimpo.substring(0, 12);
+      int soma = 0;
+
+      for (int i = 0; i < 12; i++) {
+        soma += int.parse(tempCnpj[i]) * multiplicadores1[i];
+      }
+
+      int resto = soma % 11;
+      int digito1 = resto < 2 ? 0 : 11 - resto;
+
+      tempCnpj = tempCnpj + digito1.toString();
+      soma = 0;
+
+      for (int i = 0; i < 13; i++) {
+        soma += int.parse(tempCnpj[i]) * multiplicadores2[i];
+      }
+
+      resto = soma % 11;
+      int digito2 = resto < 2 ? 0 : 11 - resto;
+
+      if (int.parse(numeroLimpo.substring(12, 13)) != digito1 ||
+          int.parse(numeroLimpo.substring(13, 14)) != digito2) {
+        return 'CNPJ inválido';
+      }
+    }
+
+    return null;
+  }
+
+  String? _validarCEP(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira o CEP';
+    }
+
+    String cepLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
+
+    if (cepLimpo.length != 8) {
+      return 'CEP deve ter 8 dígitos';
+    }
+
+    if (RegExp(r'^0{8}$').hasMatch(cepLimpo) || RegExp(r'^(\d)\1{7}$').hasMatch(cepLimpo)) {
+      return 'CEP inválido';
     }
 
     return null;
@@ -145,6 +253,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       onPressed: () async {
                         try {
                           await FirebaseAuth.instance.signOut();
+                          final GoogleSignIn googleSignIn = GoogleSignIn();
+                          await googleSignIn.signOut();
+
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(builder: (context) => TelaLogin()),
                                 (Route<dynamic> route) => false,
@@ -167,27 +278,37 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(height: 30),
 
-
-                _buildLabel('Email'),
-                TextFormField(
-                  initialValue: widget.email,
-                  enabled: false,
-                  decoration: _buildInputDecoration(),
-                  style: TextStyle(color: Colors.grey[600]),
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.red[700],
+                        size: 20,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Para prosseguir com sua conta google, é necessário que preencha o restante de suas informações!',
+                          style: TextStyle(
+                            color: Colors.red[700],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
 
-                SizedBox(height: 20),
-
-                _buildLabel('Senha'),
-                TextFormField(
-                  initialValue: '••••••••',
-                  enabled: false,
-                  obscureText: true,
-                  decoration: _buildInputDecoration(),
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-
-                SizedBox(height: 20),
+                SizedBox(height: 30),
 
                 _buildLabel('Nome completo'),
                 TextFormField(
@@ -217,22 +338,12 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(height: 20),
 
-                // Campo CEP
                 _buildLabel('CEP'),
                 TextFormField(
                   controller: _cepController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira o CEP';
-                    }
-                    String cepLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
-                    if (cepLimpo.length != 8) {
-                      return 'CEP deve ter 8 dígitos';
-                    }
-                    return null;
-                  },
+                  validator: _validarCEP,
                 ),
 
                 SizedBox(height: 20),
