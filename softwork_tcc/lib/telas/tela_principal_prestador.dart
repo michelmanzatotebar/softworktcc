@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
+import 'tela_gerenciar_servicos.dart';
 
 class TelaPrincipalPrestador extends StatefulWidget {
   final String nomeUsuario;
@@ -39,9 +40,9 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
     final ano = agora.year;
 
     if (agora.weekday == 6 || agora.weekday == 7) {
-      return '$diaSemana, $dia $mes $ano';
+      return '$diaSemana, $dia de $mes $ano';
     } else {
-      return '$diaSemana Feira, $dia $mes $ano';
+      return '$diaSemana Feira, $dia de $mes $ano';
     }
   }
 
@@ -84,7 +85,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header com perfil e data
               Row(
                 children: [
                   GestureDetector(
@@ -125,10 +125,8 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 40),
 
-              // Botões principais
               Row(
                 children: [
-                  // Botão Comunidade
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
@@ -143,7 +141,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                         ),
                         child: Stack(
                           children: [
-                            // Texto centralizado
                             Center(
                               child: Text(
                                 'Comunidade',
@@ -154,7 +151,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                                 ),
                               ),
                             ),
-                            // Seta no canto direito
                             Positioned(
                               right: 15,
                               top: 15,
@@ -182,14 +178,20 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 20),
 
-              // Botão Meus serviços
               Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
                       onTap: () {
-                        // TODO: Navegar para tela de meus serviços
-                        print("Navegar para Meus Serviços");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TelaGerenciarServicos(
+                              nomeUsuario: widget.nomeUsuario,
+                              cpfCnpj: widget.cpfCnpj,
+                            ),
+                          ),
+                        );
                       },
                       child: Container(
                         height: 60,
@@ -210,7 +212,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                                 ),
                               ),
                             ),
-                            // Seta no canto direito
                             Positioned(
                               right: 15,
                               top: 15,
@@ -238,7 +239,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 20),
 
-              // Botão Solicitações em andamento
               Row(
                 children: [
                   Expanded(
@@ -255,7 +255,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                         ),
                         child: Stack(
                           children: [
-                            // Texto centralizado
                             Center(
                               child: Text(
                                 'Solicitações em andamento',
@@ -266,7 +265,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                                 ),
                               ),
                             ),
-                            // Seta no canto direito
                             Positioned(
                               right: 15,
                               top: 15,
@@ -294,7 +292,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 40),
 
-              // Seção de solicitações a verificar
               Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -309,7 +306,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 20),
 
-              // Lista de solicitações (por enquanto vazia)
               Expanded(
                 child: Center(
                   child: Text(
@@ -322,7 +318,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                 ),
               ),
 
-              // Botão de logout (mantido discreto no final)
               if (_isLoading)
                 Center(
                   child: CircularProgressIndicator(
