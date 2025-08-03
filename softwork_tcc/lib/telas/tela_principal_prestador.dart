@@ -20,6 +20,31 @@ class TelaPrincipalPrestador extends StatefulWidget {
 class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
   bool _isLoading = false;
 
+  String _formatarDataAtual() {
+    final agora = DateTime.now();
+
+    final diasSemana = [
+      'Segunda', 'Terça', 'Quarta', 'Quinta',
+      'Sexta', 'Sábado', 'Domingo'
+    ];
+
+    final meses = [
+      'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+      'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+    ];
+
+    final diaSemana = diasSemana[agora.weekday - 1];
+    final dia = agora.day;
+    final mes = meses[agora.month - 1];
+    final ano = agora.year;
+
+    if (agora.weekday == 6 || agora.weekday == 7) {
+      return '$diaSemana, $dia $mes $ano';
+    } else {
+      return '$diaSemana Feira, $dia $mes $ano';
+    }
+  }
+
   Future<void> _logout() async {
     setState(() {
       _isLoading = true;
@@ -53,90 +78,269 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'SoftWork',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        backgroundColor: Colors.red,
-        elevation: 2,
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.logout, color: Colors.white),
-            onPressed: _isLoading ? null : _logout,
-            tooltip: 'Sair',
-          ),
-        ],
-      ),
-      body: Center(
+      body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: EdgeInsets.all(32),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.red[200]!, width: 2),
-                ),
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.work,
-                      size: 80,
-                      color: Colors.red[600],
-                    ),
-                    SizedBox(height: 24),
-                    Text(
-                      'Tela do Prestador',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red[800],
+              // Header com perfil e data
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      // TODO: Navegar para tela de perfil
+                      print("Navegar para perfil");
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 28,
                       ),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Bem-vindo, ${widget.nomeUsuario}!',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[700],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'CPF/CNPJ: ${widget.cpfCnpj}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 40),
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Aqui será implementada a interface do prestador para gerenciar serviços, visualizar solicitações, cadastrar novos serviços, etc.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[700],
                   ),
-                  textAlign: TextAlign.center,
+                  Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatarDataAtual(),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 40),
+
+              // Botões principais
+              Row(
+                children: [
+                  // Botão Comunidade
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Navegar para tela de comunidade
+                        print("Navegar para Comunidade");
+                      },
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFF5757),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Stack(
+                          children: [
+                            // Texto centralizado
+                            Center(
+                              child: Text(
+                                'Comunidade',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            // Seta no canto direito
+                            Positioned(
+                              right: 15,
+                              top: 15,
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  color: Color(0xFFFF5757),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20),
+
+              // Botão Meus serviços
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Navegar para tela de meus serviços
+                        print("Navegar para Meus Serviços");
+                      },
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFB71C1C),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Stack(
+                          children: [
+                            // Texto centralizado
+                            Center(
+                              child: Text(
+                                'Meus serviços',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            // Seta no canto direito
+                            Positioned(
+                              right: 15,
+                              top: 15,
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  color: Color(0xFFB71C1C),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20),
+
+              // Botão Solicitações em andamento
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        // TODO: Navegar para tela de solicitações em andamento
+                        print("Navegar para Solicitações em Andamento");
+                      },
+                      child: Container(
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFF5757),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Stack(
+                          children: [
+                            // Texto centralizado
+                            Center(
+                              child: Text(
+                                'Solicitações em andamento',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            // Seta no canto direito
+                            Positioned(
+                              right: 15,
+                              top: 15,
+                              child: Container(
+                                width: 30,
+                                height: 30,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.arrow_forward,
+                                  color: Color(0xFFFF5757),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 40),
+
+              // Seção de solicitações a verificar
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  'Solicitações a verificar',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
+
+              SizedBox(height: 20),
+
+              // Lista de solicitações (por enquanto vazia)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'Nenhuma solicitação no momento',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Botão de logout (mantido discreto no final)
+              if (_isLoading)
+                Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                  ),
+                )
+              else
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: _logout,
+                    icon: Icon(Icons.logout, color: Colors.red, size: 20),
+                    label: Text(
+                      'Sair',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
