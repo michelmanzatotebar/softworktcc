@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'tela_cadastro.dart';
+import 'tela_principal_cliente.dart';
+import 'tela_principal_prestador.dart';
 
 class TelaLogin extends StatefulWidget {
   @override
@@ -122,34 +125,30 @@ class _TelaLoginState extends State<TelaLogin> {
 
         bool cadastroCompleto = false;
         String? cpfCnpjUsuario;
+        Map<dynamic, dynamic>? dadosUsuario;
 
         for (var entry in usuarios.entries) {
-          var dadosUsuario = entry.value as Map<dynamic, dynamic>;
+          var dados = entry.value as Map<dynamic, dynamic>;
 
-          if (dadosUsuario['email'] == user.email) {
-            if (dadosUsuario['nome'] != null &&
-                dadosUsuario['logradouro'] != null &&
-                dadosUsuario['cep'] != null &&
-                dadosUsuario['tipoConta'] != null) {
+          if (dados['email'] == user.email) {
+            if (dados['nome'] != null &&
+                dados['logradouro'] != null &&
+                dados['cep'] != null &&
+                dados['tipoConta'] != null) {
               cadastroCompleto = true;
               cpfCnpjUsuario = entry.key;
+              dadosUsuario = dados;
               break;
             }
           }
         }
 
-        if (cadastroCompleto && cpfCnpjUsuario != null) {
+        if (cadastroCompleto && cpfCnpjUsuario != null && dadosUsuario != null) {
           print("Usuário já possui cadastro completo. CPF/CNPJ: $cpfCnpjUsuario");
+          print("Tipo de conta: ${dadosUsuario['tipoConta']}");
 
-          // Navegar para a tela principal do app
-
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Seja Bem vindo!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          // Redirecionar baseado no tipo de conta
+          await _redirecionarParaTelaPrincipal(dadosUsuario, cpfCnpjUsuario);
         } else {
           _navegarParaCadastro(user);
         }
@@ -159,6 +158,53 @@ class _TelaLoginState extends State<TelaLogin> {
     } catch (e) {
       print("Erro ao verificar cadastro: $e");
       _navegarParaCadastro(user);
+    }
+  }
+
+  Future<void> _redirecionarParaTelaPrincipal(Map<dynamic, dynamic> dadosUsuario, String cpfCnpj) async {
+    bool tipoConta = dadosUsuario['tipoConta'] as bool;
+    String nomeUsuario = dadosUsuario['nome'] as String;
+
+    if (tipoConta) {
+      // Cliente - tipoConta = true
+      print("Redirecionando para tela principal do CLIENTE");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login feito com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => TelaPrincipalCliente(
+            nomeUsuario: nomeUsuario,
+            cpfCnpj: cpfCnpj,
+          ),
+        ),
+            (Route<dynamic> route) => false,
+      );
+    } else {
+      // Prestador - tipoConta = false
+      print("Redirecionando para tela principal do PRESTADOR");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login feito com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => TelaPrincipalPrestador(
+            nomeUsuario: nomeUsuario,
+            cpfCnpj: cpfCnpj,
+          ),
+        ),
+            (Route<dynamic> route) => false,
+      );
     }
   }
 
@@ -196,9 +242,9 @@ class _TelaLoginState extends State<TelaLogin> {
                   ),
                   child: Text(
                     'SoftWork',
-                    style: TextStyle(
+                    style: GoogleFonts.playfairDisplay(
                       fontSize: 42,
-                      fontWeight: FontWeight.w300,
+                      fontWeight: FontWeight.w500,
                       letterSpacing: 2,
                       color: Colors.black87,
                     ),
@@ -219,7 +265,7 @@ class _TelaLoginState extends State<TelaLogin> {
                 SizedBox(height: 16),
 
                 Text(
-                  'Faça login para continuar',
+                  'Use sua conta Google para acessar',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
@@ -251,24 +297,13 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                     )
                         : Text(
-                      'Login',
+                      'Entrar com o Google',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ),
-
-                SizedBox(height: 40),
-
-                Text(
-                  'Use sua conta Google para acessar',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                  ),
-                  textAlign: TextAlign.center,
                 ),
               ],
             ),

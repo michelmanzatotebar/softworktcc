@@ -35,6 +35,7 @@ dependencies:
   firebase_database: ^10.5.7
   firebase_auth: ^4.16.0
   google_sign_in: ^6.2.1
+  google_fonts: ^6.1.0
 
 
 
