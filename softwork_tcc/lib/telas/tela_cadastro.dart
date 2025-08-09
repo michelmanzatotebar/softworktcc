@@ -23,9 +23,11 @@ class TelaCadastro extends StatefulWidget {
 class _TelaCadastroState extends State<TelaCadastro> {
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
+  final _telefoneController = TextEditingController();
   final _logradouroController = TextEditingController();
   final _cepController = TextEditingController();
   final _cpfCnpjController = TextEditingController();
+  final _idadeController = TextEditingController();
 
   bool _tipoConta = true;
   bool _isLoading = false;
@@ -44,6 +46,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
       try {
         String cpfCnpjLimpo = _cpfCnpjController.text.replaceAll(RegExp(r'[^\d]'), '');
+        String telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^\d]'), '');
 
         final DatabaseReference ref = FirebaseDatabase.instance.ref();
 
@@ -65,10 +68,12 @@ class _TelaCadastroState extends State<TelaCadastro> {
         Map<String, dynamic> dadosUsuario = {
           'email': widget.email,
           'nome': _nomeController.text.trim(),
+          'telefone': telefoneLimpo,
           'logradouro': _logradouroController.text.trim(),
           'cep': _cepController.text.trim(),
           'cpfCnpj': cpfCnpjLimpo,
           'tipoConta': _tipoConta,
+          'idade': int.parse(_idadeController.text.trim()),
           'uid': widget.uid,
         };
 
@@ -106,6 +111,40 @@ class _TelaCadastroState extends State<TelaCadastro> {
         });
       }
     }
+  }
+
+  String? _validarTelefone(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira o telefone';
+    }
+
+    String telefoneLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
+
+    if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
+      return 'Telefone deve ter 10 ou 11 dígitos';
+    }
+
+    return null;
+  }
+
+  String? _validarIdade(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira sua idade';
+    }
+
+    try {
+      int idade = int.parse(value);
+      if (idade < 18) {
+        return 'Idade deve estar acima de 18 anos';
+      }
+      if (idade > 90) {
+        return 'Idade com valor muito alto!';
+      }
+    } catch (e) {
+      return 'Por favor, insira uma idade válida';
+    }
+
+    return null;
   }
 
   String? _validarCPFCNPJ(String? value) {
@@ -158,7 +197,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
       if (numeroLimpo == '11111111111111') {
         return null;
       }
-
+      if (numeroLimpo == '11111111111') {
+        return null;
+      }
 
       if (RegExp(r'^(\d)\1{13}$').hasMatch(numeroLimpo)) {
         return 'CNPJ inválido';
@@ -228,9 +269,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
   @override
   void dispose() {
     _nomeController.dispose();
+    _telefoneController.dispose();
     _logradouroController.dispose();
     _cepController.dispose();
     _cpfCnpjController.dispose();
+    _idadeController.dispose();
     super.dispose();
   }
 
@@ -324,6 +367,26 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(height: 20),
 
+                _buildLabel('Telefone (somente números)'),
+                TextFormField(
+                  controller: _telefoneController,
+                  keyboardType: TextInputType.number,
+                  decoration: _buildInputDecoration(),
+                  validator: _validarTelefone,
+                ),
+
+                SizedBox(height: 20),
+
+                _buildLabel('Idade'),
+                TextFormField(
+                  controller: _idadeController,
+                  keyboardType: TextInputType.number,
+                  decoration: _buildInputDecoration(),
+                  validator: _validarIdade,
+                ),
+
+                SizedBox(height: 20),
+
                 _buildLabel('Logradouro'),
                 TextFormField(
                   controller: _logradouroController,
@@ -348,7 +411,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(height: 20),
 
-                _buildLabel('CPF ou CNPJ'),
+                _buildLabel('CPF ou CNPJ (somente números)'),
                 TextFormField(
                   controller: _cpfCnpjController,
                   keyboardType: TextInputType.number,
