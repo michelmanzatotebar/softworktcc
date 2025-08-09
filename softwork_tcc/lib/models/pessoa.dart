@@ -1,11 +1,13 @@
 class Pessoa {
   int id;
   String nome;
-  int telefone;
+  String telefone;
   String senha;
   String email;
-  int cpfCnpj;
+  String cpfCnpj;
   bool tipoConta;
+  String logradouro;
+  String cep;
   int idade;
 
   Pessoa({
@@ -16,6 +18,8 @@ class Pessoa {
     required this.email,
     required this.cpfCnpj,
     required this.tipoConta,
+    required this.logradouro,
+    required this.cep,
     required this.idade,
   });
 
@@ -27,6 +31,8 @@ class Pessoa {
         email = map['email'],
         cpfCnpj = map['cpfCnpj'],
         tipoConta = map['tipoConta'],
+        logradouro = map['logradouro'],
+        cep = map['cep'],
         idade = map['idade'];
 
   Map<String, dynamic> toMap() {
@@ -38,6 +44,8 @@ class Pessoa {
       'email': email,
       'cpfCnpj': cpfCnpj,
       'tipoConta': tipoConta,
+      'logradouro': logradouro,
+      'cep': cep,
       'idade': idade,
     };
   }
