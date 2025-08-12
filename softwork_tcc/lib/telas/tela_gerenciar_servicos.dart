@@ -73,6 +73,7 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
               children: [
                 TextField(
                   controller: _nomeController,
+                  maxLength: 25,
                   decoration: InputDecoration(
                     labelText: 'Nome do serviço',
                     border: OutlineInputBorder(
@@ -176,6 +177,7 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
               children: [
                 TextField(
                   controller: _nomeController,
+                  maxLength: 25,
                   decoration: InputDecoration(
                     labelText: 'Nome do serviço',
                     border: OutlineInputBorder(
@@ -609,44 +611,34 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    servico['nome'] ?? '',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-
-                                SizedBox(width: 12),
-
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red[600],
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.red.withOpacity(0.3),
-                                          spreadRadius: 1,
-                                          blurRadius: 3,
-                                          offset: Offset(0, 2),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        servico['nome'] ?? '',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
                                         ),
-                                      ],
-                                    ),
-                                    child: Text(
-                                      servico['categoria'] ?? '',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                      SizedBox(height: 4),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red[600],
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          servico['categoria'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
