@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import '../controllers/cadastro_controller.dart';
 import 'tela_login.dart';
 
 class TelaCadastro extends StatefulWidget {
@@ -21,6 +19,7 @@ class TelaCadastro extends StatefulWidget {
 }
 
 class _TelaCadastroState extends State<TelaCadastro> {
+  final CadastroController _cadastroController = CadastroController();
   final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _telefoneController = TextEditingController();
@@ -30,240 +29,58 @@ class _TelaCadastroState extends State<TelaCadastro> {
   final _idadeController = TextEditingController();
 
   bool _tipoConta = true;
-  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _nomeController.text = widget.nome;
+    _configurarCallbacks();
   }
 
-  Future<void> _cadastrar() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        String cpfCnpjLimpo = _cpfCnpjController.text.replaceAll(RegExp(r'[^\d]'), '');
-        String telefoneLimpo = _telefoneController.text.replaceAll(RegExp(r'[^\d]'), '');
-
-        final DatabaseReference ref = FirebaseDatabase.instance.ref();
-
-        final snapshot = await ref.child('usuarios/$cpfCnpjLimpo').get();
-
-        if (snapshot.exists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Já existe uma conta cadastrada com este CPF/CNPJ'),
-              backgroundColor: Colors.red,
-            ),
-          );
-          setState(() {
-            _isLoading = false;
-          });
-          return;
-        }
-
-        Map<String, dynamic> dadosUsuario = {
-          'email': widget.email,
-          'nome': _nomeController.text.trim(),
-          'telefone': telefoneLimpo,
-          'logradouro': _logradouroController.text.trim(),
-          'cep': _cepController.text.trim(),
-          'cpfCnpj': cpfCnpjLimpo,
-          'tipoConta': _tipoConta,
-          'idade': int.parse(_idadeController.text.trim()),
-          'uid': widget.uid,
-        };
-
-        await ref.child('usuarios/$cpfCnpjLimpo').set(dadosUsuario);
-
-        print("Cadastro realizado com sucesso!");
-
+  void _configurarCallbacks() {
+    _cadastroController.setCallbacks(
+      loadingCallback: (bool isLoading) {
+        setState(() {});
+      },
+      messageCallback: (String message, bool isSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Cadastro realizado com sucesso!'),
-            backgroundColor: Colors.green,
+            content: Text(message),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
           ),
         );
-
-        await FirebaseAuth.instance.signOut();
-        final GoogleSignIn googleSignIn = GoogleSignIn();
-        await googleSignIn.signOut();
-
+      },
+      sucessoCallback: () {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => TelaLogin()),
               (Route<dynamic> route) => false,
         );
+      },
+    );
+  }
 
-      } catch (e) {
-        print("Erro ao cadastrar: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao realizar cadastro'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+  Future<void> _cadastrar() async {
+    if (_formKey.currentState!.validate()) {
+      await _cadastroController.cadastrar(
+        email: widget.email,
+        uid: widget.uid,
+        nome: _nomeController.text,
+        telefone: _telefoneController.text,
+        logradouro: _logradouroController.text,
+        cep: _cepController.text,
+        cpfCnpj: _cpfCnpjController.text,
+        idade: _idadeController.text,
+        tipoConta: _tipoConta,
+      );
     }
   }
 
-  String? _validarTelefone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira o telefone';
-    }
-
-    String telefoneLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (telefoneLimpo.length < 10 || telefoneLimpo.length > 11) {
-      return 'Telefone deve ter 10 ou 11 dígitos';
-    }
-
-    return null;
-  }
-
-  String? _validarIdade(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira sua idade';
-    }
-
-    try {
-      int idade = int.parse(value);
-      if (idade < 18) {
-        return 'Idade deve estar acima de 18 anos';
-      }
-      if (idade > 90) {
-        return 'Idade com valor muito alto!';
-      }
-    } catch (e) {
-      return 'Por favor, insira uma idade válida';
-    }
-
-    return null;
-  }
-
-  String? _validarCPFCNPJ(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira o CPF ou CNPJ';
-    }
-
-    String numeroLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (numeroLimpo.length != 11 && numeroLimpo.length != 14) {
-      return 'CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos';
-    }
-
-    if (numeroLimpo.length == 11) {
-      if (numeroLimpo == '33333333333') {
-        return null;
-      }
-
-      if (RegExp(r'^(\d)\1{10}$').hasMatch(numeroLimpo)) {
-        return 'CPF inválido';
-      }
-
-      int soma = 0;
-      int resto;
-
-      for (int i = 1; i <= 9; i++) {
-        soma += int.parse(numeroLimpo.substring(i - 1, i)) * (11 - i);
-      }
-      resto = (soma * 10) % 11;
-      if (resto == 10 || resto == 11) resto = 0;
-      if (resto != int.parse(numeroLimpo.substring(9, 10))) {
-        return 'CPF inválido';
-      }
-
-      soma = 0;
-      for (int i = 1; i <= 10; i++) {
-        soma += int.parse(numeroLimpo.substring(i - 1, i)) * (12 - i);
-      }
-      resto = (soma * 10) % 11;
-      if (resto == 10 || resto == 11) resto = 0;
-      if (resto != int.parse(numeroLimpo.substring(10, 11))) {
-        return 'CPF inválido';
-      }
-    }
-
-    if (numeroLimpo.length == 14) {
-      if (numeroLimpo == '22222222222222') {
-        return null;
-      }
-      if (numeroLimpo == '11111111111111') {
-        return null;
-      }
-      if (numeroLimpo == '11111111111') {
-        return null;
-      }
-
-      if (RegExp(r'^(\d)\1{13}$').hasMatch(numeroLimpo)) {
-        return 'CNPJ inválido';
-      }
-
-      List<String> cnpjsInvalidos = [
-        '00000000000000',
-        '33333333333333', '44444444444444', '55555555555555',
-        '66666666666666', '77777777777777', '88888888888888',
-        '99999999999999'
-      ];
-
-      if (cnpjsInvalidos.contains(numeroLimpo)) {
-        return 'CNPJ inválido';
-      }
-
-      List<int> multiplicadores1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-      List<int> multiplicadores2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-
-      String tempCnpj = numeroLimpo.substring(0, 12);
-      int soma = 0;
-
-      for (int i = 0; i < 12; i++) {
-        soma += int.parse(tempCnpj[i]) * multiplicadores1[i];
-      }
-
-      int resto = soma % 11;
-      int digito1 = resto < 2 ? 0 : 11 - resto;
-
-      tempCnpj = tempCnpj + digito1.toString();
-      soma = 0;
-
-      for (int i = 0; i < 13; i++) {
-        soma += int.parse(tempCnpj[i]) * multiplicadores2[i];
-      }
-
-      resto = soma % 11;
-      int digito2 = resto < 2 ? 0 : 11 - resto;
-
-      if (int.parse(numeroLimpo.substring(12, 13)) != digito1 ||
-          int.parse(numeroLimpo.substring(13, 14)) != digito2) {
-        return 'CNPJ inválido';
-      }
-    }
-
-    return null;
-  }
-
-  String? _validarCEP(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Por favor, insira o CEP';
-    }
-
-    String cepLimpo = value.replaceAll(RegExp(r'[^\d]'), '');
-
-    if (cepLimpo.length != 8) {
-      return 'CEP deve ter 8 dígitos';
-    }
-
-    if (RegExp(r'^0{8}$').hasMatch(cepLimpo) || RegExp(r'^(\d)\1{7}$').hasMatch(cepLimpo)) {
-      return 'CEP inválido';
-    }
-
-    return null;
+  Future<void> _voltarParaLogin() async {
+    await _cadastroController.voltarParaLogin();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => TelaLogin()),
+          (Route<dynamic> route) => false,
+    );
   }
 
   @override
@@ -293,20 +110,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   children: [
                     IconButton(
                       icon: Icon(Icons.arrow_back, size: 28),
-                      onPressed: () async {
-                        try {
-                          await FirebaseAuth.instance.signOut();
-                          final GoogleSignIn googleSignIn = GoogleSignIn();
-                          await googleSignIn.signOut();
-
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => TelaLogin()),
-                                (Route<dynamic> route) => false,
-                          );
-                        } catch (e) {
-                          print("Erro ao fazer logout: $e");
-                        }
-                      },
+                      onPressed: _voltarParaLogin,
                     ),
                     SizedBox(width: 8),
                     Text(
@@ -357,12 +161,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 TextFormField(
                   controller: _nomeController,
                   decoration: _buildInputDecoration(),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira seu nome completo';
-                    }
-                    return null;
-                  },
+                  validator: _cadastroController.validarNome,
                 ),
 
                 SizedBox(height: 20),
@@ -372,7 +171,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   controller: _telefoneController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
-                  validator: _validarTelefone,
+                  validator: _cadastroController.validarTelefone,
                 ),
 
                 SizedBox(height: 20),
@@ -382,7 +181,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   controller: _idadeController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
-                  validator: _validarIdade,
+                  validator: _cadastroController.validarIdade,
                 ),
 
                 SizedBox(height: 20),
@@ -391,12 +190,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 TextFormField(
                   controller: _logradouroController,
                   decoration: _buildInputDecoration(),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira o logradouro';
-                    }
-                    return null;
-                  },
+                  validator: _cadastroController.validarLogradouro,
                 ),
 
                 SizedBox(height: 20),
@@ -406,7 +200,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   controller: _cepController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
-                  validator: _validarCEP,
+                  validator: _cadastroController.validarCEP,
                 ),
 
                 SizedBox(height: 20),
@@ -416,7 +210,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   controller: _cpfCnpjController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
-                  validator: _validarCPFCNPJ,
+                  validator: _cadastroController.validarCPFCNPJ,
                 ),
 
                 SizedBox(height: 30),
@@ -460,7 +254,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _cadastrar,
+                    onPressed: _cadastroController.isLoading ? null : _cadastrar,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(
@@ -468,7 +262,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       ),
                       elevation: 0,
                     ),
-                    child: _isLoading
+                    child: _cadastroController.isLoading
                         ? CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     )
