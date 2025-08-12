@@ -5,20 +5,20 @@ import 'package:softwork_tcc/models/prestador_autonomo.dart';
 void main() {
   group('Servico - Testes Unitários', () {
     test('Deve criar Serviço com valor correto', () {
-      // Arrange
       final prestador = PrestadorAutonomo(
         id: 1,
         nome: 'Laura',
-        telefone: 11888777666,
+        telefone: '11888777666',
         senha: '123',
         email: 'laura@email.com',
-        cpfCnpj: 98765432100,
+        cpfCnpj: '98765432100',
         tipoConta: false,
+        logradouro: 'Av. Principal, 456',
+        cep: '87654321',
         idade: 35,
         solicitacao: null,
       );
 
-      // Act
       final servico = Servico(
         id: 1,
         nome: 'Limpeza',
@@ -28,7 +28,6 @@ void main() {
         prestador: prestador,
       );
 
-      // Assert
       expect(servico.valor, 150.50);
       expect(servico.nome, 'Limpeza');
       expect(servico.prestador, prestador);
@@ -36,15 +35,16 @@ void main() {
     });
 
     test('Deve validar categoria do serviço', () {
-      // Arrange
       final prestador = PrestadorAutonomo(
         id: 1,
         nome: 'Laura',
-        telefone: 11888777666,
+        telefone: '11888777666',
         senha: '123',
         email: 'laura@email.com',
-        cpfCnpj: 98765432100,
+        cpfCnpj: '98765432100',
         tipoConta: false,
+        logradouro: 'Av. Principal, 456',
+        cep: '87654321',
         idade: 35,
         solicitacao: null,
       );
@@ -58,24 +58,24 @@ void main() {
         prestador: prestador,
       );
 
-      // Assert
       expect(servico.categoria, 'Jardinagem');
       expect(servico.categoria.isNotEmpty, true);
       expect(servico.prestador.solicitacao, isNull);
     });
 
     test('Deve serializar e deserializar Serviço corretamente', () {
-      // Arrange
       final prestador = PrestadorAutonomo(
         id: 1,
         nome: 'Laura',
-        telefone: 11888777666,
+        telefone: '11888777666',
         senha: '123',
         email: 'laura@email.com',
-        cpfCnpj: 98765432100,
+        cpfCnpj: '98765432100',
         tipoConta: false,
+        logradouro: 'Av. Principal, 456',
+        cep: '87654321',
         idade: 35,
-
+        solicitacao: null,
       );
 
       final servicoOriginal = Servico(
@@ -87,12 +87,8 @@ void main() {
         prestador: prestador,
       );
 
-      // Act - Serializar
       final servicoMap = servicoOriginal.toMap();
-
-      // Act - Deserializar
       final servicoDeserializado = Servico.fromMap(servicoMap);
-
 
       expect(servicoDeserializado.id, servicoOriginal.id);
       expect(servicoDeserializado.nome, servicoOriginal.nome);

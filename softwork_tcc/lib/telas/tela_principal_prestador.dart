@@ -46,6 +46,151 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
     }
   }
 
+  void _mostrarMenuPerfil() {
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        20, // posição X (da esquerda)
+        80, // posição Y (do topo)
+        MediaQuery.of(context).size.width - 320, // margem direita
+        0, // margem inferior
+      ),
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 8,
+      items: [
+        PopupMenuItem<String>(
+          enabled: false,
+          child: Container(
+            width: 280,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.nomeUsuario,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Prestador Autônomo',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.blue[600],
+                        size: 18,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          print("Editar perfil");
+                          Navigator.pop(context);
+                        },
+                        child: Text(
+                          'Editar Perfil',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 15),
+
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.logout,
+                        color: Colors.red[600],
+                        size: 18,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: _isLoading ? null : () {
+                          Navigator.pop(context);
+                          _logout();
+                        },
+                        child: Text(
+                          'Sair',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(height: 15),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _logout() async {
     setState(() {
       _isLoading = true;
@@ -89,8 +234,7 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                 children: [
                   GestureDetector(
                     onTap: () {
-                      // TODO: Navegar para tela de perfil
-                      print("Navegar para perfil");
+                      _mostrarMenuPerfil();
                     },
                     child: Container(
                       width: 50,
@@ -128,108 +272,59 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        // TODO: Navegar para tela de comunidade
-                        print("Navegar para Comunidade");
-                      },
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFFF5757),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Text(
-                                'Comunidade',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              right: 15,
-                              top: 15,
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_forward,
-                                  color: Color(0xFFFF5757),
-                                  size: 18,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 20),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TelaGerenciarServicos(
-                              nomeUsuario: widget.nomeUsuario,
-                              cpfCnpj: widget.cpfCnpj,
-                            ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFFFF5757).withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
                           ),
-                        );
-                      },
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFB71C1C),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Stack(
-                          children: [
-                            // Texto centralizado
-                            Center(
-                              child: Text(
-                                'Meus serviços',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                        ],
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          print("Navegar para Comunidade");
+                        },
+                        child: Container(
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFF5757),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Text(
+                                  'Comunidade',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              right: 15,
-                              top: 15,
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_forward,
-                                  color: Color(0xFFB71C1C),
-                                  size: 18,
+                              Positioned(
+                                right: 15,
+                                top: 15,
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward,
+                                    color: Color(0xFFFF5757),
+                                    size: 18,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -242,47 +337,132 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        // TODO: Navegar para tela de solicitações em andamento
-                        print("Navegar para Solicitações em Andamento");
-                      },
-                      child: Container(
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFFF5757),
-                          borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFFB71C1C).withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TelaGerenciarServicos(
+                                nomeUsuario: widget.nomeUsuario,
+                                cpfCnpj: widget.cpfCnpj,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFB71C1C),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Text(
+                                  'Meus serviços',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                right: 15,
+                                top: 15,
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward,
+                                    color: Color(0xFFB71C1C),
+                                    size: 18,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Text(
-                                'Solicitações em andamento',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 20),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0xFFFF5757).withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: GestureDetector(
+                        onTap: () {
+                          print("Navegar para Solicitações em Andamento");
+                        },
+                        child: Container(
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFF5757),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Text(
+                                  'Solicitações em andamento',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Positioned(
-                              right: 15,
-                              top: 15,
-                              child: Container(
-                                width: 30,
-                                height: 30,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.arrow_forward,
-                                  color: Color(0xFFFF5757),
-                                  size: 18,
+                              Positioned(
+                                right: 15,
+                                top: 15,
+                                child: Container(
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_forward,
+                                    color: Color(0xFFFF5757),
+                                    size: 18,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -322,18 +502,6 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                 Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                )
-              else
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: _logout,
-                    icon: Icon(Icons.logout, color: Colors.red, size: 20),
-                    label: Text(
-                      'Sair',
-                      style: TextStyle(color: Colors.red),
-                    ),
                   ),
                 ),
             ],

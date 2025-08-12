@@ -25,13 +25,22 @@ class _TelaLoginState extends State<TelaLogin> {
   }
 
   Future<void> _verificarUsuarioLogado() async {
-    User? currentUser = _auth.currentUser;
+    try {
+      User? currentUser = _auth.currentUser;
 
-    if (currentUser != null) {
-      print("estava logado: ${currentUser.email}");
-      print("deslogando");
-      await _auth.signOut();
-      await _googleSignIn.signOut();
+      if (currentUser != null) {
+        print("estava logado: ${currentUser.email}");
+        print("deslogando");
+
+        await Future.wait([
+          _auth.signOut(),
+          _googleSignIn.signOut(),
+        ]).timeout(Duration(seconds: 10));
+
+        print("Logout concluído com sucesso");
+      }
+    } catch (e) {
+      print("Erro durante verificação/logout: $e");
     }
   }
 
@@ -147,7 +156,6 @@ class _TelaLoginState extends State<TelaLogin> {
           print("Usuário já possui cadastro completo. CPF/CNPJ: $cpfCnpjUsuario");
           print("Tipo de conta: ${dadosUsuario['tipoConta']}");
 
-          // Redirecionar baseado no tipo de conta
           await _redirecionarParaTelaPrincipal(dadosUsuario, cpfCnpjUsuario);
         } else {
           _navegarParaCadastro(user);
@@ -166,7 +174,6 @@ class _TelaLoginState extends State<TelaLogin> {
     String nomeUsuario = dadosUsuario['nome'] as String;
 
     if (tipoConta) {
-      // Cliente - tipoConta = true
       print("Redirecionando para tela principal do CLIENTE");
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -186,7 +193,6 @@ class _TelaLoginState extends State<TelaLogin> {
             (Route<dynamic> route) => false,
       );
     } else {
-      // Prestador - tipoConta = false
       print("Redirecionando para tela principal do PRESTADOR");
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -274,15 +280,25 @@ class _TelaLoginState extends State<TelaLogin> {
 
                 SizedBox(height: 60),
 
-                SizedBox(
+                Container(
                   width: double.infinity,
                   height: 54,
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _loginComGoogle,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      elevation: 2,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

@@ -12,6 +12,8 @@ class Cliente extends Pessoa {
     required super.email,
     required super.cpfCnpj,
     required super.tipoConta,
+    required super.logradouro,
+    required super.cep,
     required super.idade,
     this.solicitacao,
   });
@@ -20,7 +22,18 @@ class Cliente extends Pessoa {
       : solicitacao = map['solicitacao'] != null
       ? Solicitacao.fromMap(map['solicitacao'])
       : null,
-        super.fromMap(map);
+        super(
+        id: map['id'],
+        nome: map['nome'],
+        telefone: map['telefone'],
+        senha: map['senha'],
+        email: map['email'],
+        cpfCnpj: map['cpfCnpj'],
+        tipoConta: map['tipoConta'],
+        logradouro: map['logradouro'],
+        cep: map['cep'],
+        idade: map['idade'],
+      );
 
   @override
   Map<String, dynamic> toMap() {
