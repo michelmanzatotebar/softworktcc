@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../controllers/cadastro_controller.dart';
 import 'tela_login.dart';
 
@@ -56,6 +57,55 @@ class _TelaCadastroState extends State<TelaCadastro> {
               (Route<dynamic> route) => false,
         );
       },
+    );
+  }
+
+  void _atualizarMascaraCpfCnpj(String texto) {
+    String numeroLimpo = texto.replaceAll(RegExp(r'[^\d]'), '');
+
+    TextInputFormatter formatter = CadastroController.getCpfCnpjFormatter(texto);
+
+    final novoValor = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      TextEditingValue(text: numeroLimpo, selection: TextSelection.collapsed(offset: numeroLimpo.length)),
+    );
+
+    if (_cpfCnpjController.text != novoValor.text) {
+      _cpfCnpjController.value = novoValor;
+    }
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.grey[800],
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDecoration() {
+    return InputDecoration(
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.blue, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.red, width: 1),
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      filled: true,
+      fillColor: Colors.grey[50],
     );
   }
 
@@ -143,12 +193,26 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       ),
                       SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          'Para prosseguir com sua conta google, é necessário que preencha o restante de suas informações!',
-                          style: TextStyle(
-                            color: Colors.red[700],
-                            fontSize: 14,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Para prosseguir com sua conta google, é necessário que preencha o restante de suas informações!',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'E-mail cadastrado: ${widget.email}',
+                              style: TextStyle(
+                                color: Colors.red[700],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -166,10 +230,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(height: 20),
 
-                _buildLabel('Telefone (somente números)'),
+                _buildLabel('Telefone'),
                 TextFormField(
                   controller: _telefoneController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [CadastroController.telefoneMaskFormatter],
                   decoration: _buildInputDecoration(),
                   validator: _cadastroController.validarTelefone,
                 ),
@@ -180,6 +245,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 TextFormField(
                   controller: _idadeController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: CadastroController.idadeFormatters,
                   decoration: _buildInputDecoration(),
                   validator: _cadastroController.validarIdade,
                 ),
@@ -199,17 +265,19 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 TextFormField(
                   controller: _cepController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [CadastroController.cepMaskFormatter],
                   decoration: _buildInputDecoration(),
                   validator: _cadastroController.validarCEP,
                 ),
 
                 SizedBox(height: 20),
 
-                _buildLabel('CPF ou CNPJ (somente números)'),
+                _buildLabel('CPF ou CNPJ'),
                 TextFormField(
                   controller: _cpfCnpjController,
                   keyboardType: TextInputType.number,
                   decoration: _buildInputDecoration(),
+                  onChanged: _atualizarMascaraCpfCnpj,
                   validator: _cadastroController.validarCPFCNPJ,
                 ),
 
@@ -228,12 +296,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           });
                         },
                         contentPadding: EdgeInsets.zero,
-                        dense: true,
                       ),
                     ),
                     Expanded(
                       child: RadioListTile<bool>(
-                        title: Text('Prestador\nAutônomo'),
+                        title: Text('Prestador Autônomo'),
                         value: false,
                         groupValue: _tipoConta,
                         onChanged: (value) {
@@ -242,7 +309,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           });
                         },
                         contentPadding: EdgeInsets.zero,
-                        dense: true,
                       ),
                     ),
                   ],
@@ -252,26 +318,43 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 54,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: _cadastroController.isLoading ? null : _cadastrar,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(27),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      elevation: 0,
+                      elevation: 2,
                     ),
                     child: _cadastroController.isLoading
-                        ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
                     )
                         : Text(
                       'Cadastrar',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
+
+                Center(
+                  child: TextButton(
+                    onPressed: _voltarParaLogin,
+                    child: Text(
+                      'Voltar para Login',
                       style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Colors.grey[600],
+                        fontSize: 14,
                       ),
                     ),
                   ),
@@ -281,43 +364,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _buildInputDecoration() {
-    return InputDecoration(
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey[400]!, style: BorderStyle.solid, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.red, width: 2),
-      ),
-      disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey[300]!, style: BorderStyle.solid, width: 1.5),
-      ),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 }

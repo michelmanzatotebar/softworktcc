@@ -1,6 +1,8 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class CadastroController {
   bool _isLoading = false;
@@ -9,6 +11,35 @@ class CadastroController {
   Function(bool)? onLoadingChanged;
   Function(String, bool)? onShowMessage;
   Function()? onCadastroSucesso;
+
+  static final MaskTextInputFormatter cepMaskFormatter = MaskTextInputFormatter(
+    mask: '#####-###',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
+  static final MaskTextInputFormatter telefoneMaskFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
+  static final MaskTextInputFormatter cpfMaskFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
+  static final MaskTextInputFormatter cnpjMaskFormatter = MaskTextInputFormatter(
+    mask: '##.###.###/####-##',
+    filter: {"#": RegExp(r'[0-9]')},
+    type: MaskAutoCompletionType.lazy,
+  );
+
+  static final List<TextInputFormatter> idadeFormatters = [
+    FilteringTextInputFormatter.digitsOnly,
+    LengthLimitingTextInputFormatter(2),
+  ];
 
   void setCallbacks({
     Function(bool)? loadingCallback,
@@ -23,6 +54,29 @@ class CadastroController {
   void _setLoading(bool loading) {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
+  }
+
+  static TextInputFormatter getCpfCnpjFormatter(String texto) {
+    String numeroLimpo = texto.replaceAll(RegExp(r'[^\d]'), '');
+
+    if (numeroLimpo.length <= 11) {
+      return cpfMaskFormatter;
+    } else {
+      return cnpjMaskFormatter;
+    }
+  }
+
+  static String formatarCpfCnpj(String texto) {
+    String numeroLimpo = texto.replaceAll(RegExp(r'[^\d]'), '');
+
+    TextInputFormatter formatter = getCpfCnpjFormatter(texto);
+
+    final resultado = formatter.formatEditUpdate(
+      TextEditingValue.empty,
+      TextEditingValue(text: numeroLimpo, selection: TextSelection.collapsed(offset: numeroLimpo.length)),
+    );
+
+    return resultado.text;
   }
 
   Future<void> cadastrar({
@@ -41,6 +95,7 @@ class CadastroController {
     try {
       String cpfCnpjLimpo = cpfCnpj.replaceAll(RegExp(r'[^\d]'), '');
       String telefoneLimpo = telefone.replaceAll(RegExp(r'[^\d]'), '');
+      String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
 
       final DatabaseReference ref = FirebaseDatabase.instance.ref();
 
@@ -57,7 +112,7 @@ class CadastroController {
         'nome': nome.trim(),
         'telefone': telefoneLimpo,
         'logradouro': logradouro.trim(),
-        'cep': cep.trim(),
+        'cep': cepLimpo,
         'cpfCnpj': cpfCnpjLimpo,
         'tipoConta': tipoConta,
         'idade': int.parse(idade.trim()),
