@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 import 'tela_pesquisa_prestador.dart';
+import 'tela_pesquisa_servicos.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 
 class TelaPrincipalCliente extends StatefulWidget {
@@ -614,21 +615,37 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
 
               SizedBox(height: 20),
 
-              CompositedTransformTarget(
-                link: _servicoLayerLink,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: TextField(
-                    controller: _servicoController,
-                    onChanged: _pesquisarServico,
-                    decoration: InputDecoration(
-                      hintText: 'Qual serviço deseja procurar?',
-                      prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaPesquisaServicos(),
+                    ),
+                  );
+                },
+                child: CompositedTransformTarget(
+                  link: _servicoLayerLink,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search, color: Colors.grey[600]),
+                          SizedBox(width: 12),
+                          Text(
+                            'Qual serviço deseja procurar?',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
