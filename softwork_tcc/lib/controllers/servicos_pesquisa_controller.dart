@@ -81,12 +81,10 @@ class ServicosPesquisaController {
           categoriaServico == categoriaFiltro.toLowerCase();
 
       if (matchQuery && matchCategoria) {
-        // Formatando valor para exibição
         if (servico['valor'] != null) {
           servico['valorFormatado'] = 'R\$ ${servico['valor'].toStringAsFixed(2).replaceAll('.', ',')}';
         }
 
-        // Informações do prestador
         if (servico['prestador'] != null) {
           servico['prestadorNome'] = servico['prestador']['nome'] ?? '';
           servico['prestadorCpfCnpj'] = servico['prestador']['cpfCnpj'] ?? '';
@@ -96,7 +94,6 @@ class ServicosPesquisaController {
       }
     });
 
-    // Ordenar por nome do serviço
     servicosEncontrados.sort((a, b) =>
         a['nome'].toString().toLowerCase().compareTo(b['nome'].toString().toLowerCase())
     );
@@ -124,7 +121,7 @@ class ServicosPesquisaController {
     });
 
     List<String> categorias = categoriasSet.toList();
-    categorias.sort(); // Ordenar alfabeticamente
+    categorias.sort();
 
     print("Categorias encontradas: ${categorias.length}");
     return categorias;
@@ -138,7 +135,7 @@ class ServicosPesquisaController {
         Map<String, dynamic> servico = Map<String, dynamic>.from(snapshot.value as Map);
         servico['id'] = servicoId;
 
-        // Formatando valor para exibição
+
         if (servico['valor'] != null) {
           servico['valorFormatado'] = 'R\$ ${servico['valor'].toStringAsFixed(2).replaceAll('.', ',')}';
         }

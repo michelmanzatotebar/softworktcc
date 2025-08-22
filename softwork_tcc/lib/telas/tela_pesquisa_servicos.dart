@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/servicos_pesquisa_controller.dart';
 
-// Classe para armazenar o último serviço verificado globalmente
 class UltimoServicoVerificado {
   static Map<String, dynamic>? servico;
 }
@@ -67,7 +66,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
     setState(() {
       _categoriaSelecionada = categoria;
     });
-    // Reaplica a pesquisa com o novo filtro se há texto no campo
     if (_servicoController.text.isNotEmpty) {
       _pesquisarServico(_servicoController.text);
     }
@@ -149,7 +147,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
   }
 
   void _abrirDetalhesServico(Map<String, dynamic> servico) {
-    // Salva o último serviço verificado
     _salvarUltimoServicoVerificado(servico);
 
     print("Redirecionado para o perfil do serviço: ${servico['nome']} - ID: ${servico['id']}");
@@ -157,7 +154,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
   }
 
   void _salvarUltimoServicoVerificado(Map<String, dynamic> servico) {
-    // Remove dados desnecessários para evitar problemas de serialização
     Map<String, dynamic> servicoLimpo = {
       'id': servico['id'],
       'nome': servico['nome'],
@@ -168,9 +164,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
       'prestadorNome': servico['prestadorNome'],
       'prestadorCpfCnpj': servico['prestadorCpfCnpj'],
     };
-
-    // Aqui você pode usar SharedPreferences ou outra forma de persistência
-    // Por simplicidade, vou usar uma variável estática global
     UltimoServicoVerificado.servico = servicoLimpo;
   }
 
