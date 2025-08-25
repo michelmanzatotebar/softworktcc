@@ -5,6 +5,7 @@ import 'tela_login.dart';
 import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
+import '../controllers/tela_principal_cliente_controller.dart';
 
 class TelaPrincipalCliente extends StatefulWidget {
   final String nomeUsuario;
@@ -21,19 +22,43 @@ class TelaPrincipalCliente extends StatefulWidget {
 }
 
 class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
-  final _servicoController = TextEditingController();
+  final TelaPrincipalClienteController _principalController = TelaPrincipalClienteController();
 
   bool _isLoading = false;
-  bool _showServicoResults = false;
-  OverlayEntry? _servicoOverlay;
-  final LayerLink _servicoLayerLink = LayerLink();
-
-  List<Map<String, dynamic>> _servicosEncontrados = [];
   List<Map<String, dynamic>> _servicosRecentesPesquisados = [];
 
   @override
   void initState() {
     super.initState();
+    _configurarCallbacks();
+    _carregarServicosRecentes();
+  }
+
+  void _configurarCallbacks() {
+    _principalController.setCallbacks(
+      servicosRecentesCallback: (List<Map<String, dynamic>> servicosRecentes) {
+        setState(() {
+          _servicosRecentesPesquisados = servicosRecentes;
+        });
+      },
+      errorCallback: (String erro) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(erro),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+      loadingCallback: (bool loading) {
+        setState(() {
+          _isLoading = loading;
+        });
+      },
+    );
+  }
+
+  void _carregarServicosRecentes() {
+    _principalController.carregarServicosRecentes(widget.cpfCnpj);
   }
 
   String _formatarDataAtual() {
@@ -206,169 +231,184 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
     );
   }
 
-  Future<void> _logout() async {
-    setState(() {
-      _isLoading = true;
-    });
-
+  void _logout() async {
     try {
+      await GoogleSignIn().signOut();
       await FirebaseAuth.instance.signOut();
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
 
-      Navigator.of(context).pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil(
+        context,
         MaterialPageRoute(builder: (context) => TelaLogin()),
-            (Route<dynamic> route) => false,
+            (route) => false,
       );
     } catch (e) {
       print("Erro ao fazer logout: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao fazer logout'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
-  void _pesquisarServico(String query) {
-    // TODO: Implementar lógica de pesquisa de serviços
-    print("Pesquisando serviços: $query");
+  void _navegarParaPesquisaServicos() async {
+    UltimoServicoVerificado.onServicoAdicionado = (servico) {
+      _principalController.adicionarServicoRecente(servico, widget.cpfCnpj);
+    };
 
-    if (query.isNotEmpty) {
-      _mostrarMenuServicos();
-    } else {
-      _esconderMenuServicos();
-    }
-  }
-
-  void _mostrarMenuServicos() {
-    _esconderMenuServicos();
-
-    _servicoOverlay = OverlayEntry(
-      builder: (context) => Positioned(
-        width: MediaQuery.of(context).size.width - 40,
-        child: CompositedTransformFollower(
-          link: _servicoLayerLink,
-          showWhenUnlinked: false,
-          offset: Offset(0, 60),
-          child: Material(
-            elevation: 8,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              constraints: BoxConstraints(maxHeight: 400),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey[200]!),
-              ),
-              child: _servicosEncontrados.isEmpty
-                  ? Padding(
-                padding: EdgeInsets.all(20),
-                child: Text(
-                  'Nenhum serviço encontrado',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              )
-                  : ListView.builder(
-                shrinkWrap: true,
-                itemCount: _servicosEncontrados.length,
-                itemBuilder: (context, index) {
-                  final servico = _servicosEncontrados[index];
-                  return Container(
-                    margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(12),
-                        title: Text(
-                          servico['nome'] ?? '',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: 4),
-                            Text(
-                              servico['categoria'] ?? '',
-                              style: TextStyle(
-                                color: Colors.red[600],
-                                fontWeight: FontWeight.w500,
-                                fontSize: 12,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'R\$ ${servico['valor']?.toStringAsFixed(2) ?? '0,00'}',
-                              style: TextStyle(
-                                color: Colors.green[600],
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.grey[600],
-                        ),
-                        onTap: () {
-                          _esconderMenuServicos();
-                          _verificarServico(servico);
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaPesquisaServicos(clienteCpfCnpj: widget.cpfCnpj),
       ),
     );
 
-    Overlay.of(context)?.insert(_servicoOverlay!);
+    UltimoServicoVerificado.onServicoAdicionado = null;
   }
 
-  void _esconderMenuServicos() {
-    _servicoOverlay?.remove();
-    _servicoOverlay = null;
+  void _navegarParaPesquisaPrestador() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaPesquisaPrestador(),
+      ),
+    );
   }
 
-  void _verificarServico(Map<String, dynamic> servico) {
-    // TODO: Navegar para tela de verificar serviço
-    print("Verificar serviço: ${servico['nome']}");
-
-    setState(() {
-      _servicosRecentesPesquisados.removeWhere((s) => s['id'] == servico['id']);
-
-      _servicosRecentesPesquisados.insert(0, servico);
-      if (_servicosRecentesPesquisados.length > 5) {
-        _servicosRecentesPesquisados.removeLast();
-      }
-    });
+  Widget _buildServicoCard(Map<String, dynamic> servico, {bool isRecente = false}) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey[100]!,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  servico['nome'] ?? '',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              if (isRecente)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Recente',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.blue[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            servico['categoria'] ?? '',
+            style: TextStyle(
+              color: Colors.red[600],
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
+          SizedBox(height: 8),
+          if (servico['prestadorNome'] != null && servico['prestadorNome'].toString().isNotEmpty)
+            Row(
+              children: [
+                Text(
+                  'Prestador: ${servico['prestadorNome']}',
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () => _verPerfilPrestador(servico),
+                  child: Text(
+                    'ver perfil',
+                    style: TextStyle(
+                      color: Colors.red[600],
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          SizedBox(height: 4),
+          if (servico['descricao'] != null && servico['descricao'].toString().isNotEmpty)
+            Text(
+              servico['descricao'],
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 12,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  servico['valorFormatado'] ?? 'R\$ ${servico['valor']?.toStringAsFixed(2) ?? '0,00'}',
+                  style: TextStyle(
+                    color: Colors.green[600],
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => _verServicoDetalhes(servico),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.red[600],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Ver serviço',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
-  @override
-  void dispose() {
-    _esconderMenuServicos();
-    _servicoController.dispose();
-    super.dispose();
+  void _verServicoDetalhes(Map<String, dynamic> servico) {
+    print("Ver detalhes do serviço: ${servico['nome']}");
+  }
+
+  void _verPerfilPrestador(Map<String, dynamic> servico) {
+    print("Redirecionando para o perfil do prestador: ${servico['prestadorNome']}");
   }
 
   @override
@@ -381,13 +421,10 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header com perfil e data
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      _mostrarMenuPerfil();
-                    },
+                    onTap: _mostrarMenuPerfil,
                     child: Container(
                       width: 50,
                       height: 50,
@@ -421,7 +458,6 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
 
               SizedBox(height: 40),
 
-              // Título
               Align(
                 alignment: Alignment.center,
                 child: Text(
@@ -437,14 +473,7 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
               SizedBox(height: 20),
 
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TelaPesquisaPrestador(),
-                    ),
-                  );
-                },
+                onTap: _navegarParaPesquisaPrestador,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
@@ -469,142 +498,128 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                 ),
               ),
 
-              SizedBox(height: 30),
+              SizedBox(height: 20),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFFFF5757).withOpacity(0.3),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: GestureDetector(
-                        onTap: () {
-                          print("Navegar para Comunidade");
-                        },
-                        child: Container(
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFFF5757),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Comunidade',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 15,
-                                top: 15,
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.arrow_forward,
-                                    color: Color(0xFFFF5757),
-                                    size: 18,
-                                  ),
-                                ),
-                              ),
-                            ],
+              Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFFB71C1C),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFB71C1C),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Text(
+                            'Comunidade',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
+                        Positioned(
+                          right: 15,
+                          top: 15,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward,
+                              color: Color(0xFFB71C1C),
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
 
               SizedBox(height: 20),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0xFFB71C1C).withOpacity(0.3),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: GestureDetector(
-                        onTap: () {
-                          print("Navegar para Minhas Solicitações");
-                        },
-                        child: Container(
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFB71C1C),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Text(
-                                  'Minhas solicitações',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 15,
-                                top: 15,
-                                child: Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.arrow_forward,
-                                    color: Color(0xFFB71C1C),
-                                    size: 18,
-                                  ),
-                                ),
-                              ),
-                            ],
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Text(
+                            'Solicitações em andamento',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
+                        Positioned(
+                          right: 15,
+                          top: 15,
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward,
+                              color: Colors.red,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
 
-              SizedBox(height: 30),
+              SizedBox(height: 20),
 
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  'Buscar serviços',
+                  'Buscar Serviços',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -616,36 +631,26 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
               SizedBox(height: 20),
 
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TelaPesquisaServicos(),
-                    ),
-                  );
-                },
-                child: CompositedTransformTarget(
-                  link: _servicoLayerLink,
+                onTap: _navegarParaPesquisaServicos,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
                   child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: Colors.grey[300]!),
-                    ),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: Colors.grey[600]),
-                          SizedBox(width: 12),
-                          Text(
-                            'Qual serviço deseja procurar?',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                            ),
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.grey[600]),
+                        SizedBox(width: 12),
+                        Text(
+                          'Qual serviço deseja procurar?',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -658,24 +663,18 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_servicosRecentesPesquisados.isNotEmpty) ...[
-                      Text(
-                        'Serviços recentes pesquisados',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                      Center(
+                        child: Text(
+                          'Serviço recente pesquisado',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
                       SizedBox(height: 12),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _servicosRecentesPesquisados.length,
-                          itemBuilder: (context, index) {
-                            final servico = _servicosRecentesPesquisados[index];
-                            return _buildServicoCard(servico, isRecente: true);
-                          },
-                        ),
-                      ),
+                      _buildServicoCard(_servicosRecentesPesquisados[0], isRecente: true),
                     ] else ...[
                       Expanded(
                         child: Center(
@@ -704,6 +703,14 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Pesquise por serviços para vê-los aqui',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[500],
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -712,164 +719,8 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                   ],
                 ),
               ),
-
-              if (_isLoading)
-                Center(
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-                  ),
-                ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildServicoCard(Map<String, dynamic> servico, {bool isRecente = false}) {
-    String descricao = servico['descricao'] ?? '';
-    bool descricaoLonga = descricao.length > 80;
-
-    return Card(
-      margin: EdgeInsets.only(bottom: 16),
-      elevation: 3,
-      color: Colors.grey[100],
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isRecente ? Colors.blue[200]! : Colors.grey[300]!,
-          width: 1,
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              servico['nome'] ?? '',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-                          if (isRecente)
-                            Container(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[100],
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Recente',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.blue[700],
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      SizedBox(height: 4),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.red[600],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          servico['categoria'] ?? '',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 12),
-
-            Text(
-              descricaoLonga
-                  ? '${descricao.substring(0, 80)}...'
-                  : descricao,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-                height: 1.4,
-              ),
-            ),
-
-            SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'R\$ ${servico['valor']?.toStringAsFixed(2) ?? '0,00'}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.green[600],
-                  ),
-                ),
-
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 2),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () => _verificarServico(servico),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Verificar serviço',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(
-                          Icons.arrow_forward,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
