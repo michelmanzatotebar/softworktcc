@@ -346,19 +346,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 ),
 
                 SizedBox(height: 20),
-
-                Center(
-                  child: TextButton(
-                    onPressed: _voltarParaLogin,
-                    child: Text(
-                      'Voltar para Login',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
