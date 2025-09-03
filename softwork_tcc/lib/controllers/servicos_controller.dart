@@ -3,6 +3,26 @@ import 'package:firebase_database/firebase_database.dart';
 class ServicosController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
 
+  static const List<String> categoriasPredefinidas = [
+    'Casa e Manutenção',
+    'Limpeza e Organização',
+    'Cuidados Pessoais',
+    'Pet Services',
+    'Tecnologia e Digital',
+    'Beleza e Estética',
+    'Transporte e Entrega',
+    'Alimentação e Gastronomia',
+    'Eventos e Entretenimento',
+    'Educação e Ensino',
+    'Consultoria e Assessoria',
+    'Jardim e Paisagismo',
+    'Saúde e Bem-estar',
+    'Arte e Criação',
+    'Serviços Automotivos',
+    'Serviços Administrativos',
+    'Serviços de Emergência',
+  ];
+
   Future<List<Map<String, dynamic>>> carregarServicosPorPrestador(String cpfCnpj) async {
     try {
       final snapshot = await _ref.child('servicos').get();
@@ -52,7 +72,11 @@ class ServicosController {
     }
 
     if (categoria.trim().isEmpty) {
-      return "Por favor, preencha a categoria do serviço";
+      return "Por favor, selecione uma categoria";
+    }
+
+    if (!categoriasPredefinidas.contains(categoria)) {
+      return "Por favor, selecione uma categoria válida";
     }
 
     try {

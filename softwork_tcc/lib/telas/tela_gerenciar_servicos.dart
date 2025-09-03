@@ -22,7 +22,28 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
   final _nomeController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _valorController = TextEditingController();
-  final _categoriaController = TextEditingController();
+
+  String? _categoriaSelecionada;
+
+  final List<String> _categorias = [
+    'Casa e Manutenção',
+    'Limpeza e Organização',
+    'Cuidados Pessoais',
+    'Pet Services',
+    'Tecnologia e Digital',
+    'Beleza e Estética',
+    'Transporte e Entrega',
+    'Alimentação e Gastronomia',
+    'Eventos e Entretenimento',
+    'Educação e Ensino',
+    'Consultoria e Assessoria',
+    'Jardim e Paisagismo',
+    'Saúde e Bem-estar',
+    'Arte e Criação',
+    'Serviços Automotivos',
+    'Serviços Administrativos',
+    'Serviços de Emergência',
+  ];
 
   List<Map<String, dynamic>> _servicos = [];
   bool _isLoading = true;
@@ -56,98 +77,115 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
   }
 
   void _mostrarDialogCadastroServico() {
+    _limparCampos();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Cadastrar Novo Serviço',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _nomeController,
-                  maxLength: 25,
-                  decoration: InputDecoration(
-                    labelText: 'Nome do serviço',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(
+                'Cadastrar Novo Serviço',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nomeController,
+                      maxLength: 25,
+                      decoration: InputDecoration(
+                        labelText: 'Nome do serviço',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+
+                    SizedBox(height: 16),
+
+                    TextField(
+                      controller: _descricaoController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Descrição',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    TextField(
+                      controller: _valorController,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Valor (R\$)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        prefixText: 'R\$ ',
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: _categoriaSelecionada,
+                      decoration: InputDecoration(
+                        labelText: 'Categoria',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                      items: _categorias.map((String categoria) {
+                        return DropdownMenuItem<String>(
+                          value: categoria,
+                          child: Text(categoria),
+                        );
+                      }).toList(),
+                      onChanged: (String? novaCategoria) {
+                        setStateDialog(() {
+                          _categoriaSelecionada = novaCategoria;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _limparCampos();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
 
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _descricaoController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Descrição',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                ElevatedButton(
+                  onPressed: _cadastrarServico,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
                   ),
-                ),
-
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _valorController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Valor (R\$)',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    prefixText: 'R\$ ',
-                  ),
-                ),
-
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _categoriaController,
-                  decoration: InputDecoration(
-                    labelText: 'Categoria',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  ),
+                  child: Text('Cadastrar'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _limparCampos();
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-
-            ElevatedButton(
-              onPressed: _cadastrarServico,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Cadastrar'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -158,100 +196,115 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
     _nomeController.text = servico['nome'] ?? '';
     _descricaoController.text = servico['descricao'] ?? '';
     _valorController.text = servico['valor']?.toString() ?? '';
-    _categoriaController.text = servico['categoria'] ?? '';
+    _categoriaSelecionada = servico['categoria'] ?? null;
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Editar Serviço',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _nomeController,
-                  maxLength: 25,
-                  decoration: InputDecoration(
-                    labelText: 'Nome do serviço',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(
+                'Editar Serviço',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: _nomeController,
+                      maxLength: 25,
+                      decoration: InputDecoration(
+                        labelText: 'Nome do serviço',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+
+                    SizedBox(height: 16),
+
+                    TextField(
+                      controller: _descricaoController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Descrição',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    TextField(
+                      controller: _valorController,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: 'Valor (R\$)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        prefixText: 'R\$ ',
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    DropdownButtonFormField<String>(
+                      value: _categoriaSelecionada,
+                      decoration: InputDecoration(
+                        labelText: 'Categoria',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      ),
+                      items: _categorias.map((String categoria) {
+                        return DropdownMenuItem<String>(
+                          value: categoria,
+                          child: Text(categoria),
+                        );
+                      }).toList(),
+                      onChanged: (String? novaCategoria) {
+                        setStateDialog(() {
+                          _categoriaSelecionada = novaCategoria;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    _limparCampos();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey[600]),
                   ),
                 ),
 
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _descricaoController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Descrição',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                ElevatedButton(
+                  onPressed: () => _editarServico(servico['id'], index),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                   ),
-                ),
-
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _valorController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Valor (R\$)',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    prefixText: 'R\$ ',
-                  ),
-                ),
-
-                SizedBox(height: 16),
-
-                TextField(
-                  controller: _categoriaController,
-                  decoration: InputDecoration(
-                    labelText: 'Categoria',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                  ),
+                  child: Text('Salvar'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _limparCampos();
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-
-            ElevatedButton(
-              onPressed: () => _editarServico(servico['id'], index),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Salvar'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -263,7 +316,7 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
         nome: _nomeController.text,
         descricao: _descricaoController.text,
         valor: _valorController.text,
-        categoria: _categoriaController.text,
+        categoria: _categoriaSelecionada ?? '',
         prestadorCpfCnpj: widget.cpfCnpj,
         prestadorNome: widget.nomeUsuario,
       );
@@ -290,14 +343,14 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
         nome: _nomeController.text,
         descricao: _descricaoController.text,
         valor: _valorController.text,
-        categoria: _categoriaController.text,
+        categoria: _categoriaSelecionada ?? '',
       );
 
       setState(() {
         _servicos[index]['nome'] = _nomeController.text.trim();
         _servicos[index]['descricao'] = _descricaoController.text.trim();
         _servicos[index]['valor'] = double.parse(_valorController.text.trim().replaceAll(',', '.'));
-        _servicos[index]['categoria'] = _categoriaController.text.trim();
+        _servicos[index]['categoria'] = _categoriaSelecionada?.trim() ?? '';
       });
 
       _limparCampos();
@@ -458,7 +511,9 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
     _nomeController.clear();
     _descricaoController.clear();
     _valorController.clear();
-    _categoriaController.clear();
+    setState(() {
+      _categoriaSelecionada = null;
+    });
   }
 
   @override
@@ -466,7 +521,6 @@ class _TelaGerenciarServicosState extends State<TelaGerenciarServicos> {
     _nomeController.dispose();
     _descricaoController.dispose();
     _valorController.dispose();
-    _categoriaController.dispose();
     super.dispose();
   }
 
