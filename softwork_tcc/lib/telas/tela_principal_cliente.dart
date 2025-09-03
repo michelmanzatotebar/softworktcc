@@ -6,6 +6,7 @@ import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
+import '../telas/tela_cliente_solicitacao_servico.dart';
 
 class TelaPrincipalCliente extends StatefulWidget {
   final String nomeUsuario;
@@ -404,6 +405,15 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
   }
 
   void _verServicoDetalhes(Map<String, dynamic> servico) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaClienteSolicitacaoServico(
+          servico: servico,
+        ),
+      ),
+    );
+
     print("Ver detalhes do serviço: ${servico['nome']}");
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/servicos_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
+import 'tela_cliente_solicitacao_servico.dart';
 
 class UltimoServicoVerificado {
   static Map<String, dynamic>? servico;
@@ -266,6 +267,15 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
       UltimoServicoVerificado.onServicoAdicionado!(servico);
     }
 
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaClienteSolicitacaoServico(
+          servico: servico,
+        ),
+      ),
+    );
+
     print("Redirecionado para tela de solicitar serviço: ${servico['nome']} - ID: ${servico['id']}");
   }
 
@@ -323,7 +333,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: Center(
                       child: Text(
@@ -336,7 +345,6 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
                       ),
                     ),
                   ),
-
                   SizedBox(width: 40),
                 ],
               ),
