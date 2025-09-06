@@ -255,7 +255,10 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TelaPesquisaServicos(clienteCpfCnpj: widget.cpfCnpj),
+        builder: (context) => TelaPesquisaServicos(
+          clienteCpfCnpj: widget.cpfCnpj,
+          clienteNome: widget.nomeUsuario,
+        ),
       ),
     );
 
@@ -410,6 +413,8 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
       MaterialPageRoute(
         builder: (context) => TelaClienteSolicitacaoServico(
           servico: servico,
+          clienteNome: widget.nomeUsuario,
+          clienteCpfCnpj: widget.cpfCnpj,
         ),
       ),
     );

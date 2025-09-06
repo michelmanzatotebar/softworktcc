@@ -6,13 +6,22 @@ class TelaClienteSolicitacaoController {
   Map<String, dynamic>? prestadorInfo;
   bool isLoading = true;
 
-  // Controladores para a solicitação
   final TextEditingController tituloController = TextEditingController();
   final TextEditingController descricaoController = TextEditingController();
 
-  // Dados da solicitação baseados no model Solicitacao
   Map<String, dynamic>? dadosSolicitacao;
   Map<String, dynamic>? servicoAtual;
+
+  String? clienteNome;
+  String? clienteCpfCnpj;
+
+  void configurarDadosCliente({
+    required String nome,
+    required String cpfCnpj,
+  }) {
+    clienteNome = nome;
+    clienteCpfCnpj = cpfCnpj;
+  }
 
   Future<void> carregarInformacoesPrestador(
       Map<String, dynamic> servico, {
@@ -56,7 +65,7 @@ class TelaClienteSolicitacaoController {
   void revisarSolicitacao(BuildContext context) {
     _criarDadosSolicitacao();
 
-    Navigator.pop(context); // Fecha modal
+    Navigator.pop(context);
 
     Navigator.push(
       context,
@@ -84,10 +93,10 @@ class TelaClienteSolicitacaoController {
 
       'cliente': {
         'id': 1,
-        'nome': 'Cliente Logado',
+        'nome': clienteNome ?? 'Cliente',
         'telefone': '11999999999',
         'email': 'cliente@email.com',
-        'cpfCnpj': '12345678901',
+        'cpfCnpj': clienteCpfCnpj ?? '',
         'tipoConta': true,
         'logradouro': 'Rua Cliente, 123',
         'cep': '12345678',
