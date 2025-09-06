@@ -1,29 +1,44 @@
 import 'package:flutter/material.dart';
+import 'solicitacao_controller.dart';
 
 class TelaDetalhesSolicitacaoController {
-  // Controladores para edição
+  final SolicitacaoController _solicitacaoController = SolicitacaoController();
+
   final TextEditingController tituloEditController = TextEditingController();
   final TextEditingController descricaoEditController = TextEditingController();
 
-  // Estados de edição
   bool editandoTitulo = false;
   bool editandoDescricao = false;
+  bool isLoading = false;
 
-  // Dados da solicitação
   Map<String, dynamic>? dadosSolicitacao;
 
-  // Callbacks para atualizar a UI
   VoidCallback? onUpdateUI;
+  Function(String, bool)? onShowMessage;
+  VoidCallback? onNavigateBack;
 
-  void inicializarDados(Map<String, dynamic> dados, {VoidCallback? updateUI}) {
+  void inicializarDados(Map<String, dynamic> dados, {
+    VoidCallback? updateUI,
+    Function(String, bool)? messageCallback,
+    VoidCallback? navigateBack,
+    String? clienteNome,
+    String? clienteCpfCnpj,
+  }) {
     dadosSolicitacao = dados;
     onUpdateUI = updateUI;
+    onShowMessage = messageCallback;
+    onNavigateBack = navigateBack;
+
+    this.clienteNome = clienteNome;
+    this.clienteCpfCnpj = clienteCpfCnpj;
 
     tituloEditController.text = titulo ?? '';
     descricaoEditController.text = descricao ?? '';
   }
 
-  // Getters para acessar os dados
+  String? clienteNome;
+  String? clienteCpfCnpj;
+
   String? get titulo => dadosSolicitacao?['titulo'];
   String? get descricao => dadosSolicitacao?['descricao'];
   Map<String, dynamic>? get servico => dadosSolicitacao?['servico'];
@@ -32,7 +47,6 @@ class TelaDetalhesSolicitacaoController {
   String? get dataSolicitacao => dadosSolicitacao?['dataSolicitacao'];
   String? get statusSolicitacao => dadosSolicitacao?['statusSolicitacao'];
 
-  // Métodos para controlar edição do título
   void editarTitulo() {
     editandoTitulo = true;
     onUpdateUI?.call();
@@ -77,13 +91,7 @@ class TelaDetalhesSolicitacaoController {
 
   String formatarData(String? dataISO) {
     if (dataISO == null) return 'N/A';
-
-    try {
-      DateTime data = DateTime.parse(dataISO);
-      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year} às ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return 'Data inválida';
-    }
+    return _solicitacaoController.formatarData(dataISO);
   }
 
   Widget buildInfoRow(String label, String value) {
@@ -99,7 +107,7 @@ class TelaDetalhesSolicitacaoController {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
+                color: Colors.grey[600],
               ),
             ),
           ),
@@ -108,7 +116,7 @@ class TelaDetalhesSolicitacaoController {
               value,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.black87,
+                color: Colors.grey[800],
               ),
             ),
           ),
@@ -117,18 +125,44 @@ class TelaDetalhesSolicitacaoController {
     );
   }
 
-  void confirmarSolicitacao() {
-    if (dadosSolicitacao != null) {
-      print("=== CONFIRMANDO SOLICITAÇÃO ===");
-      print("ID: ${dadosSolicitacao!['id']}");
-      print("Título: ${dadosSolicitacao!['titulo']}");
-      print("Descrição: ${dadosSolicitacao!['descricao']}");
-      print("Data Solicitação: ${dadosSolicitacao!['dataSolicitacao']}");
-      print("Status: ${dadosSolicitacao!['statusSolicitacao']}");
-      print("Serviço: ${dadosSolicitacao!['servico']['nome']}");
-      print("Cliente: ${dadosSolicitacao!['cliente']['nome']}");
-      print("Prestador: ${dadosSolicitacao!['prestador']['nome']}");
-      print("==============================");
+  Future<void> confirmarSolicitacao() async {
+    if (dadosSolicitacao == null) return;
+
+    isLoading = true;
+    onUpdateUI?.call();
+
+    try {
+      final novaSolicitacao = await _solicitacaoController.criarSolicitacao(
+        titulo: dadosSolicitacao!['titulo'],
+        descricao: dadosSolicitacao!['descricao'],
+        categoria: dadosSolicitacao!['servico']['categoria'],
+        servico: dadosSolicitacao!['servico'],
+        clienteNome: dadosSolicitacao!['cliente']['nome'],
+        clienteCpfCnpj: dadosSolicitacao!['cliente']['cpfCnpj'],
+        prestadorNome: dadosSolicitacao!['prestador']['nome'],
+        prestadorCpfCnpj: dadosSolicitacao!['prestador']['cpfCnpj'],
+      );
+
+      print("=== SOLICITAÇÃO SALVA COM SUCESSO ===");
+      print("ID: ${novaSolicitacao['id']}");
+      print("Título: ${novaSolicitacao['titulo']}");
+      print("Status: ${novaSolicitacao['statusSolicitacao']}");
+      print("Cliente salvo: nome=${novaSolicitacao['cliente']['nome']}, cpf=${novaSolicitacao['cliente']['cpfCnpj']}");
+      print("Prestador salvo: nome=${novaSolicitacao['prestador']['nome']}, cpf=${novaSolicitacao['prestador']['cpfCnpj']}");
+      print("Dados completos do prestador estão disponíveis para exibição, mas só nome e CPF foram salvos");
+      print("=====================================");
+
+      onShowMessage?.call('Solicitação criada com sucesso', true);
+
+      await Future.delayed(Duration(seconds: 2));
+      onNavigateBack?.call();
+
+    } catch (e) {
+      print("Erro ao confirmar solicitação: $e");
+      onShowMessage?.call('Erro ao criar solicitação', false);
+    } finally {
+      isLoading = false;
+      onUpdateUI?.call();
     }
   }
 

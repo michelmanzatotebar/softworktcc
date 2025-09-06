@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/tela_detalhes_solicitacao_controller.dart';
+import 'tela_principal_cliente.dart';
 
 class TelaDetalhesSolicitacao extends StatefulWidget {
   final Map<String, dynamic> dadosSolicitacao;
@@ -492,7 +493,7 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                           child: Container(
                             height: 50,
                             child: ElevatedButton(
-                              onPressed: _controller.confirmarSolicitacao,
+                              onPressed: _controller.isLoading ? null : _controller.confirmarSolicitacao,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red[600],
                                 foregroundColor: Colors.white,
@@ -501,7 +502,16 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                                   borderRadius: BorderRadius.circular(25),
                                 ),
                               ),
-                              child: Text(
+                              child: _controller.isLoading
+                                  ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                                  : Text(
                                 'Confirmar',
                                 style: TextStyle(
                                   fontSize: 16,

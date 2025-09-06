@@ -10,8 +10,13 @@ class UltimoServicoVerificado {
 
 class TelaPesquisaServicos extends StatefulWidget {
   final String? clienteCpfCnpj;
+  final String? clienteNome;
 
-  const TelaPesquisaServicos({Key? key, this.clienteCpfCnpj}) : super(key: key);
+  const TelaPesquisaServicos({
+    Key? key,
+    this.clienteCpfCnpj,
+    this.clienteNome,
+  }) : super(key: key);
 
   @override
   _TelaPesquisaServicosState createState() => _TelaPesquisaServicosState();
@@ -272,6 +277,8 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
       MaterialPageRoute(
         builder: (context) => TelaClienteSolicitacaoServico(
           servico: servico,
+          clienteNome: widget.clienteNome ?? 'Cliente',
+          clienteCpfCnpj: widget.clienteCpfCnpj ?? '',
         ),
       ),
     );

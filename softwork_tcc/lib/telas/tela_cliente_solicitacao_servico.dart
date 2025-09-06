@@ -3,10 +3,14 @@ import '../controllers/tela_cliente_solicitacao_controller.dart';
 
 class TelaClienteSolicitacaoServico extends StatefulWidget {
   final Map<String, dynamic>? servico;
+  final String clienteNome;
+  final String clienteCpfCnpj;
 
   const TelaClienteSolicitacaoServico({
     Key? key,
     this.servico,
+    required this.clienteNome,
+    required this.clienteCpfCnpj,
   }) : super(key: key);
 
   @override
@@ -20,6 +24,11 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
   void initState() {
     super.initState();
     if (widget.servico != null) {
+      _controller.configurarDadosCliente(
+        nome: widget.clienteNome,
+        cpfCnpj: widget.clienteCpfCnpj,
+      );
+
       _controller.carregarInformacoesPrestador(
         widget.servico!,
         onComplete: () {
