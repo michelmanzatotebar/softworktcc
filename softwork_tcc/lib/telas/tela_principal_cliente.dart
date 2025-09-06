@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
+import 'tela_cliente_solicitacoes_andamento.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
 import '../telas/tela_cliente_solicitacao_servico.dart';
@@ -270,6 +271,18 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
       context,
       MaterialPageRoute(
         builder: (context) => TelaPesquisaPrestador(),
+      ),
+    );
+  }
+
+  void _navegarParaMinhasSolicitacoes() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaClienteSolicitacoesAndamento(
+          nomeUsuario: widget.nomeUsuario,
+          cpfCnpj: widget.cpfCnpj,
+        ),
       ),
     );
   }
@@ -587,7 +600,7 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                   ],
                 ),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: _navegarParaMinhasSolicitacoes,
                   child: Container(
                     height: 60,
                     decoration: BoxDecoration(
