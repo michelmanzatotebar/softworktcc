@@ -17,14 +17,63 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
   @override
   void initState() {
     super.initState();
-    _controller.inicializarDados(widget.dadosSolicitacao, updateUI: () {
-      setState(() {});
-    });
+    _controller.inicializarDados(
+      widget.dadosSolicitacao,
+      updateUI: () {
+        setState(() {});
+      },
+      messageCallback: (String message, bool isSuccess) {
+        _mostrarAlerta(message, isSuccess);
+      },
+      navigateBack: () {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => TelaPrincipalCliente(
+            nomeUsuario: _controller.clienteNome ?? 'Cliente',
+            cpfCnpj: _controller.clienteCpfCnpj ?? '',
+          )),
+              (Route<dynamic> route) => false,
+        );
+      },
+      clienteNome: widget.dadosSolicitacao['cliente']['nome'],
+      clienteCpfCnpj: widget.dadosSolicitacao['cliente']['cpfCnpj'],
+    );
   }
 
   void _cancelarSolicitacao() {
     Navigator.of(context).pop();
     Navigator.of(context).pop();
+  }
+
+  void _mostrarAlerta(String mensagem, bool isSuccess) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle : Icons.error,
+                color: isSuccess ? Colors.green : Colors.red,
+                size: 28,
+              ),
+              SizedBox(width: 12),
+              Text(isSuccess ? 'Sucesso!' : 'Erro!'),
+            ],
+          ),
+          content: Text(mensagem),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSuccess ? Colors.green : Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

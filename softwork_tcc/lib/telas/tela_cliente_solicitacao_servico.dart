@@ -19,6 +19,8 @@ class TelaClienteSolicitacaoServico extends StatefulWidget {
 
 class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoServico> {
   final TelaClienteSolicitacaoController _controller = TelaClienteSolicitacaoController();
+  String? _erroTitulo;
+  String? _erroDescricao;
 
   @override
   void initState() {
@@ -44,182 +46,221 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
   }
 
   void _mostrarModalSolicitacao() {
+    _erroTitulo = null;
+    _erroDescricao = null;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            padding: EdgeInsets.all(20),
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Container(
+                padding: EdgeInsets.all(20),
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        'Nova Solicitação',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Nova Solicitação',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
                         ),
+                        GestureDetector(
+                          onTap: () {
+                            _controller.limparCampos();
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.close,
+                              color: Colors.black87,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: 20),
+
+                    Text(
+                      'Título',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        _controller.limparCampos();
-                        Navigator.pop(context);
-                      },
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          shape: BoxShape.circle,
+                    SizedBox(height: 8),
+                    TextField(
+                      controller: _controller.tituloController,
+                      maxLength: 25,
+                      decoration: InputDecoration(
+                        hintText: 'Titulo da solicitação',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: _erroTitulo != null ? Colors.red : Colors.grey[300]!),
                         ),
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.black87,
-                          size: 18,
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: _erroTitulo != null ? Colors.red : Colors.red[600]!),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(color: Colors.red),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          _erroTitulo = null;
+                        });
+                      },
+                    ),
+                    if (_erroTitulo != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 5),
+                        child: Text(
+                          _erroTitulo!,
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+
+                    SizedBox(height: 15),
+
+                    Text(
+                      'Descrição',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller.descricaoController,
+                        maxLines: null,
+                        expands: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        decoration: InputDecoration(
+                          hintText: 'Descrição da solicitação',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: _erroDescricao != null ? Colors.red : Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: _erroDescricao != null ? Colors.red : Colors.red[600]!),
+                          ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.red),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setStateDialog(() {
+                            _erroDescricao = null;
+                          });
+                        },
+                      ),
+                    ),
+                    if (_erroDescricao != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 5),
+                        child: Text(
+                          _erroDescricao!,
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+
+                    SizedBox(height: 20),
+
+                    Container(
+                      width: double.infinity,
+                      height: 45,
+                      child: ElevatedButton(
+                        onPressed: () => _avancarSolicitacao(setStateDialog),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[600],
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: Text(
+                          'Avançar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                SizedBox(height: 20),
-
-                Text(
-                  'Título',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8),
-                TextField(
-                  controller: _controller.tituloController,
-                  maxLength: 25,
-                  decoration: InputDecoration(
-                    hintText: 'Titulo da solicitação',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.red[600]!),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 15),
-
-                Text(
-                  'Descrição',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Expanded(
-                  child: TextField(
-                    controller: _controller.descricaoController,
-                    maxLines: null,
-                    expands: true,
-                    textAlignVertical: TextAlignVertical.top,
-                    decoration: InputDecoration(
-                      hintText: 'Descrição da solicitação',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(color: Colors.red[600]!),
-                      ),
-                    ),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-
-                Container(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton(
-                    onPressed: _avancarSolicitacao,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[600],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    child: Text(
-                      'Avançar',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _avancarSolicitacao() {
-    if (_controller.tituloController.text.trim().isEmpty) {
-      _mostrarErro('Por favor, digite um título para a solicitação');
-      return;
-    }
-
-    if (_controller.descricaoController.text.trim().isEmpty) {
-      _mostrarErro('Por favor, digite a descrição da solicitação');
-      return;
-    }
-
-    _controller.revisarSolicitacao(context);
-  }
-
-  void _mostrarErro(String mensagem) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(
-            children: [
-              Icon(Icons.error, color: Colors.red, size: 28),
-              SizedBox(width: 12),
-              Text('Atenção!'),
-            ],
-          ),
-          content: Text(mensagem),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
               ),
-              child: Text('OK'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
+  }
+
+  void _avancarSolicitacao(StateSetter setStateDialog) {
+    String titulo = _controller.tituloController.text.trim();
+    String descricao = _controller.descricaoController.text.trim();
+
+    bool temErro = false;
+
+    if (titulo.length < 3) {
+      setStateDialog(() {
+        _erroTitulo = 'Título deve ter pelo menos 3 caracteres';
+      });
+      temErro = true;
+    } else {
+      setStateDialog(() {
+        _erroTitulo = null;
+      });
+    }
+
+    if (descricao.length < 10) {
+      setStateDialog(() {
+        _erroDescricao = 'Descrição deve ter pelo menos 10 caracteres';
+      });
+      temErro = true;
+    } else {
+      setStateDialog(() {
+        _erroDescricao = null;
+      });
+    }
+
+    if (!temErro) {
+      Navigator.pop(context);
+      _controller.revisarSolicitacao(context);
+    }
   }
 
   @override

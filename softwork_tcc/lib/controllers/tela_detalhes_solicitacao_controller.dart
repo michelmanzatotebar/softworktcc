@@ -53,13 +53,18 @@ class TelaDetalhesSolicitacaoController {
   }
 
   void salvarTitulo() {
-    if (tituloEditController.text.trim().isNotEmpty) {
-      if (dadosSolicitacao != null) {
-        dadosSolicitacao!['titulo'] = tituloEditController.text.trim();
-      }
-      editandoTitulo = false;
-      onUpdateUI?.call();
+    String titulo = tituloEditController.text.trim();
+
+    if (titulo.length < 3) {
+      onShowMessage?.call('Título deve ter pelo menos 3 caracteres', false);
+      return;
     }
+
+    if (dadosSolicitacao != null) {
+      dadosSolicitacao!['titulo'] = titulo;
+    }
+    editandoTitulo = false;
+    onUpdateUI?.call();
   }
 
   void cancelarEdicaoTitulo() {
@@ -74,13 +79,18 @@ class TelaDetalhesSolicitacaoController {
   }
 
   void salvarDescricao() {
-    if (descricaoEditController.text.trim().isNotEmpty) {
-      if (dadosSolicitacao != null) {
-        dadosSolicitacao!['descricao'] = descricaoEditController.text.trim();
-      }
-      editandoDescricao = false;
-      onUpdateUI?.call();
+    String descricao = descricaoEditController.text.trim();
+
+    if (descricao.length < 10) {
+      onShowMessage?.call('Descrição deve ter pelo menos 10 caracteres', false);
+      return;
     }
+
+    if (dadosSolicitacao != null) {
+      dadosSolicitacao!['descricao'] = descricao;
+    }
+    editandoDescricao = false;
+    onUpdateUI?.call();
   }
 
   void cancelarEdicaoDescricao() {
@@ -152,7 +162,7 @@ class TelaDetalhesSolicitacaoController {
       print("Dados completos do prestador estão disponíveis para exibição, mas só nome e CPF foram salvos");
       print("=====================================");
 
-      onShowMessage?.call('Solicitação criada com sucesso', true);
+      onShowMessage?.call('Solicitação criada com sucesso!', true);
 
       await Future.delayed(Duration(seconds: 2));
       onNavigateBack?.call();
