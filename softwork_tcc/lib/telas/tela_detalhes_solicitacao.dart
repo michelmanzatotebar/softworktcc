@@ -21,6 +21,11 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
     });
   }
 
+  void _cancelarSolicitacao() {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -105,7 +110,7 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: Colors.red[600],
                                 ),
                               ),
                               if (!_controller.editandoTitulo)
@@ -237,7 +242,7 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
+                                  color: Colors.red[600],
                                 ),
                               ),
                               if (!_controller.editandoDescricao)
@@ -372,14 +377,14 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: Colors.red[600],
                             ),
                           ),
                           SizedBox(height: 15),
-                          _controller.buildInfoRow('Nome', _controller.servico?['nome'] ?? 'N/A'),
-                          _controller.buildInfoRow('Categoria', _controller.servico?['categoria'] ?? 'N/A'),
-                          _controller.buildInfoRow('Valor', 'R\$ ${_controller.servico?['valor']?.toStringAsFixed(2) ?? '0,00'}'),
-                          _controller.buildInfoRow('Descrição', _controller.servico?['descricao'] ?? 'N/A'),
+                          _buildInfoRow('Nome', _controller.servico?['nome'] ?? 'N/A'),
+                          _buildInfoRow('Categoria', _controller.servico?['categoria'] ?? 'N/A'),
+                          _buildInfoRow('Valor', 'R\$ ${_controller.servico?['valor']?.toStringAsFixed(2) ?? '0,00'}'),
+                          _buildInfoRow('Descrição', _controller.servico?['descricao'] ?? 'N/A'),
                         ],
                       ),
                     ),
@@ -409,13 +414,13 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: Colors.red[600],
                             ),
                           ),
                           SizedBox(height: 15),
-                          _controller.buildInfoRow('Nome', _controller.prestador?['nome'] ?? 'N/A'),
-                          _controller.buildInfoRow('Email', _controller.prestador?['email'] ?? 'N/A'),
-                          _controller.buildInfoRow('Telefone', _controller.prestador?['telefone'] ?? 'N/A'),
+                          _buildInfoRow('Nome', _controller.prestador?['nome'] ?? 'N/A'),
+                          _buildInfoRow('Email', _controller.prestador?['email'] ?? 'N/A'),
+                          _buildInfoRow('Telefone', _controller.prestador?['telefone'] ?? 'N/A'),
                         ],
                       ),
                     ),
@@ -445,39 +450,68 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: Colors.red[600],
                             ),
                           ),
                           SizedBox(height: 15),
-                          _controller.buildInfoRow('Status', _controller.statusSolicitacao ?? 'N/A'),
-                          _controller.buildInfoRow('Data da Solicitação', _controller.formatarData(_controller.dataSolicitacao)),
+                          _buildInfoRow('Status', _controller.statusSolicitacao ?? 'N/A'),
+                          _buildInfoRow('Data da Solicitação', _controller.formatarData(_controller.dataSolicitacao)),
                         ],
                       ),
                     ),
 
                     SizedBox(height: 30),
 
-                    Container(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _controller.confirmarSolicitacao,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[600],
-                          foregroundColor: Colors.white,
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _cancelarSolicitacao,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey[400],
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              child: Text(
+                                'Cancelar',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        child: Text(
-                          'Confirmar Solicitação',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        SizedBox(width: 15),
+                        Expanded(
+                          child: Container(
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: _controller.confirmarSolicitacao,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red[600],
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              child: Text(
+                                'Confirmar',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
 
                     SizedBox(height: 20),
@@ -487,6 +521,37 @@ class _TelaDetalhesSolicitacaoState extends State<TelaDetalhesSolicitacao> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
