@@ -593,7 +593,7 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                       children: [
                         Center(
                           child: Text(
-                            'Solicitações em andamento',
+                            'Minhas Solicitações',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -675,7 +675,7 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                     if (_servicosRecentesPesquisados.isNotEmpty) ...[
                       Center(
                         child: Text(
-                          'Serviço recente pesquisado',
+                          'Serviço recente',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -711,14 +711,6 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                                   fontSize: 16,
                                   color: Colors.grey[600],
                                   fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              SizedBox(height: 8),
-                              Text(
-                                'Pesquise por serviços para vê-los aqui',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[500],
                                 ),
                               ),
                             ],
