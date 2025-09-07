@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 import 'tela_gerenciar_servicos_prestador.dart';
 import 'tela_detalhes_solicitacao_prestador.dart';
+import 'tela_prestador_solicitacoes_andamento.dart';
 import '../controllers/tela_principal_prestador_controller.dart';
 
 class TelaPrincipalPrestador extends StatefulWidget {
@@ -616,7 +617,15 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                       ),
                       child: GestureDetector(
                         onTap: () {
-                          print("Navegar para Solicitações em Andamento");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TelaPrestadorSolicitacoesAndamento(
+                                nomeUsuario: widget.nomeUsuario,
+                                cpfCnpj: widget.cpfCnpj,
+                              ),
+                            ),
+                          );
                         },
                         child: Container(
                           height: 60,
