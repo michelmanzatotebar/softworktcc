@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../telas/tela_detalhes_solicitacao.dart';
+import '../telas/tela_detalhes_solicitacao_cliente.dart';
 
 class TelaClienteSolicitacaoController {
   Map<String, dynamic>? prestadorInfo;
