@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 import 'tela_gerenciar_servicos.dart';
+import 'tela_detalhes_solicitacao_prestador.dart';
+import '../controllers/tela_principal_prestador_controller.dart';
 
 class TelaPrincipalPrestador extends StatefulWidget {
   final String nomeUsuario;
@@ -19,7 +22,44 @@ class TelaPrincipalPrestador extends StatefulWidget {
 }
 
 class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
+  final TelaPrincipalPrestadorController _controller = TelaPrincipalPrestadorController();
+
   bool _isLoading = false;
+  List<Map<String, dynamic>> _solicitacoesPendentes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _configurarCallbacks();
+    _carregarSolicitacoes();
+  }
+
+  void _configurarCallbacks() {
+    _controller.setCallbacks(
+      loadingCallback: (bool isLoading) {
+        setState(() {
+          _isLoading = isLoading;
+        });
+      },
+      solicitacoesCallback: (List<Map<String, dynamic>> solicitacoes) {
+        setState(() {
+          _solicitacoesPendentes = solicitacoes;
+        });
+      },
+      errorCallback: (String error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: Colors.red,
+          ),
+        );
+      },
+    );
+  }
+
+  void _carregarSolicitacoes() {
+    _controller.carregarSolicitacoesPrestador(widget.cpfCnpj);
+  }
 
   String _formatarDataAtual() {
     final agora = DateTime.now();
@@ -50,10 +90,10 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
     showMenu(
       context: context,
       position: RelativeRect.fromLTRB(
-        20, // posição X (da esquerda)
-        80, // posição Y (do topo)
-        MediaQuery.of(context).size.width - 320, // margem direita
-        0, // margem inferior
+        20,
+        80,
+        MediaQuery.of(context).size.width - 320,
+        0,
       ),
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -218,6 +258,158 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
         _isLoading = false;
       });
     }
+  }
+
+  void _verificarSolicitacao(Map<String, dynamic> solicitacao) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaDetalhesSolicitacaoPrestador(
+          solicitacao: solicitacao,
+          prestadorNome: widget.nomeUsuario,
+          prestadorCpfCnpj: widget.cpfCnpj,
+        ),
+      ),
+    ).then((_) {
+      _carregarSolicitacoes();
+    });
+  }
+
+  Widget _buildSolicitacaoCard(Map<String, dynamic> solicitacao, int index) {
+    String status = solicitacao['statusSolicitacao'] ?? 'Pendente';
+
+    return Card(
+      margin: EdgeInsets.symmetric(vertical: 8),
+      elevation: 3,
+      color: Colors.grey[100],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        solicitacao['titulo'] ?? 'Sem título',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          status,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 12),
+
+            Text(
+              'Serviço: ${solicitacao['servico']?['nome'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            Text(
+              'Categoria: ${solicitacao['categoria'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            Text(
+              'Cliente: ${solicitacao['cliente']?['nome'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            Text(
+              'Data: ${_controller.formatarDataSimples(solicitacao['dataSolicitacao'] ?? '')}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+
+            SizedBox(height: 12),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _controller.formatarValorSimples(solicitacao['servico']?['valor']),
+                  style: TextStyle(
+                    color: Colors.green[600],
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => _verificarSolicitacao(solicitacao),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.red[600],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Verificar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -486,8 +678,29 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
 
               SizedBox(height: 20),
 
+              if (!_isLoading) ...[
+                Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: Text(
+                    'Solicitações pendentes: ${_solicitacoesPendentes.length}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[700],
+                    ),
+                  ),
+                ),
+              ],
+
               Expanded(
-                child: Center(
+                child: _isLoading
+                    ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                  ),
+                )
+                    : _solicitacoesPendentes.isEmpty
+                    ? Center(
                   child: Text(
                     'Nenhuma solicitação no momento',
                     style: TextStyle(
@@ -495,6 +708,13 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                       color: Colors.grey[600],
                     ),
                   ),
+                )
+                    : ListView.builder(
+                  itemCount: _solicitacoesPendentes.length,
+                  itemBuilder: (context, index) {
+                    final solicitacao = _solicitacoesPendentes[index];
+                    return _buildSolicitacaoCard(solicitacao, index);
+                  },
                 ),
               ),
 
