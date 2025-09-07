@@ -90,8 +90,8 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
                             ),
                             child: Icon(
                               Icons.close,
-                              color: Colors.black87,
-                              size: 18,
+                              size: 20,
+                              color: Colors.grey[600],
                             ),
                           ),
                         ),
@@ -111,9 +111,8 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
                     SizedBox(height: 8),
                     TextField(
                       controller: _controller.tituloController,
-                      maxLength: 25,
                       decoration: InputDecoration(
-                        hintText: 'Titulo da solicitação',
+                        hintText: 'Título da solicitação',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: _erroTitulo != null ? Colors.red : Colors.grey[300]!),
@@ -235,9 +234,9 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
 
     bool temErro = false;
 
-    if (titulo.length < 3) {
+    if (titulo.isEmpty) {
       setStateDialog(() {
-        _erroTitulo = 'Título deve ter pelo menos 3 caracteres';
+        _erroTitulo = 'Título é obrigatório';
       });
       temErro = true;
     } else {
@@ -246,9 +245,9 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
       });
     }
 
-    if (descricao.length < 10) {
+    if (descricao.isEmpty) {
       setStateDialog(() {
-        _erroDescricao = 'Descrição deve ter pelo menos 10 caracteres';
+        _erroDescricao = 'Descrição é obrigatória';
       });
       temErro = true;
     } else {
@@ -322,56 +321,60 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
                 ),
               )
-                  : widget.servico == null
-                  ? Center(
-                child: Text(
-                  'Serviço não encontrado',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              )
                   : SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'Detalhes do Serviço',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red[600],
+                      ),
+                    ),
+                    SizedBox(height: 15),
+
                     Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(20),
+                      padding: EdgeInsets.all(15),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey[200]!),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.red[50],
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(color: Colors.red[100]!),
-                                ),
-                                child: Text(
-                                  widget.servico!['categoria'] ?? 'Categoria',
-                                  style: TextStyle(
-                                    color: Colors.red[600],
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                              Icon(
+                                Icons.build,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Nome do Serviço',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      widget.servico?['nome'] ?? 'Serviço não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -379,115 +382,41 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
 
                           SizedBox(height: 15),
 
-                          Text(
-                            widget.servico!['nome'] ?? 'Nome do Serviço',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.black87,
-                            ),
-                          ),
-
-                          SizedBox(height: 10),
-
-                          Text(
-                            _controller.formatarValor(widget.servico!['valor']),
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.green[600],
-                            ),
-                          ),
-
-                          SizedBox(height: 20),
-
-                          Text(
-                            'Descrição do Serviço',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-
-                          SizedBox(height: 8),
-
                           Container(
+                            height: 1,
                             width: double.infinity,
-                            padding: EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: Text(
-                              widget.servico!['descricao'] ?? 'Descrição não disponível',
-                              style: TextStyle(
-                                fontSize: 15,
-                                height: 1.5,
-                                color: Colors.black87,
-                              ),
-                            ),
+                            color: Colors.grey[200],
                           ),
-                        ],
-                      ),
-                    ),
 
-                    SizedBox(height: 20),
+                          SizedBox(height: 15),
 
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 2,
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
                           Row(
                             children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
+                              Icon(
+                                Icons.category,
+                                color: Colors.grey[600],
+                                size: 20,
                               ),
-                              SizedBox(width: 15),
+                              SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Prestador de Serviço',
+                                      'Categoria',
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12,
                                         color: Colors.grey[600],
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                     SizedBox(height: 2),
                                     Text(
-                                      _controller.prestadorInfo?['nome'] ?? widget.servico!['prestador']?['nome'] ?? 'Nome não disponível',
+                                      widget.servico?['categoria'] ?? 'Categoria não disponível',
                                       style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w700,
+                                        fontSize: 15,
                                         color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
@@ -496,100 +425,290 @@ class _TelaClienteSolicitacaoServicoState extends State<TelaClienteSolicitacaoSe
                             ],
                           ),
 
-                          SizedBox(height: 20),
+                          SizedBox(height: 15),
 
                           Container(
-                            padding: EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.grey[200]!),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
+                            height: 1,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.attach_money,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.email_outlined,
-                                      color: Colors.grey[600],
-                                      size: 20,
+                                    Text(
+                                      'Valor',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Email',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            _controller.prestadorInfo?['email'] ?? 'Email não disponível',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.black87,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
+                                    SizedBox(height: 2),
+                                    Text(
+                                      _controller.formatarValor(widget.servico?['valor']),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.green[600],
+                                        fontWeight: FontWeight.w700,
                                       ),
                                     ),
                                   ],
                                 ),
+                              ),
+                            ],
+                          ),
 
-                                SizedBox(height: 15),
+                          SizedBox(height: 15),
 
-                                Container(
-                                  height: 1,
-                                  width: double.infinity,
-                                  color: Colors.grey[200],
-                                ),
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                          ),
 
-                                SizedBox(height: 15),
+                          SizedBox(height: 15),
 
-                                Row(
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.description,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      Icons.phone_outlined,
-                                      color: Colors.grey[600],
-                                      size: 20,
+                                    Text(
+                                      'Descrição',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Telefone',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey[600],
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                          SizedBox(height: 2),
-                                          Text(
-                                            _controller.prestadorInfo?['telefone'] != null
-                                                ? _controller.formatarTelefone(_controller.prestadorInfo!['telefone'])
-                                                : 'Telefone não disponível',
-                                            style: TextStyle(
-                                              fontSize: 15,
-                                              color: Colors.black87,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ],
+                                    SizedBox(height: 2),
+                                    Text(
+                                      widget.servico?['descricao'] ?? 'Descrição não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: 20),
+
+                    Text(
+                      'Prestador do Serviço',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red[600],
+                      ),
+                    ),
+                    SizedBox(height: 15),
+
+                    Container(
+                      padding: EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.person,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Nome',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      _controller.prestadorInfo?['nome'] ?? 'Nome não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.cake_outlined,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Idade',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      _controller.prestadorInfo?['idade']?.toString() ?? 'Idade não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Logradouro',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      _controller.prestadorInfo?['logradouro'] ?? 'Logradouro não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Container(
+                            height: 1,
+                            width: double.infinity,
+                            color: Colors.grey[200],
+                          ),
+
+                          SizedBox(height: 15),
+
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.mail_outline,
+                                color: Colors.grey[600],
+                                size: 20,
+                              ),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'CEP',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      _controller.prestadorInfo?['cep'] != null
+                                          ? _controller.formatarCep(_controller.prestadorInfo!['cep'].toString())
+                                          : 'CEP não disponível',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
