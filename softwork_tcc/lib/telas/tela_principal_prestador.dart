@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
-import 'tela_gerenciar_servicos.dart';
+import 'tela_gerenciar_servicos_prestador.dart';
 import 'tela_detalhes_solicitacao_prestador.dart';
 import '../controllers/tela_principal_prestador_controller.dart';
 

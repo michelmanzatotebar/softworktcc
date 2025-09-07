@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../controllers/tela_detalhes_solicitacao_controller.dart';
+import '../controllers/tela_detalhes_solicitacao_cliente_controller.dart';
 import 'tela_principal_cliente.dart';
 
 class TelaDetalhesSolicitacao extends StatefulWidget {
