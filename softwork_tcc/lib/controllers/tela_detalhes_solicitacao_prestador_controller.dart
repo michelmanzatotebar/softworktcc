@@ -155,6 +155,17 @@ class TelaDetalhesSolicitacaoPrestadorController {
     return dadosClienteCompletos?['logradouro']?.toString() ?? 'N/A';
   }
 
+  String getClienteCep() {
+    String cep = dadosClienteCompletos?['cep']?.toString() ?? 'N/A';
+    if (cep != 'N/A' && cep.length >= 8) {
+      String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
+      if (cepLimpo.length == 8) {
+        return '${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5)}';
+      }
+    }
+    return cep;
+  }
+
   String formatarData(String? dataISO) {
     if (dataISO == null || dataISO.isEmpty) return 'Data inválida';
 

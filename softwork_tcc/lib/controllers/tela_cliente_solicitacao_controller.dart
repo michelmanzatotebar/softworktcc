@@ -55,6 +55,14 @@ class TelaClienteSolicitacaoController {
     return telefone;
   }
 
+  String formatarCep(String cep) {
+    String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
+    if (cepLimpo.length == 8) {
+      return '${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5)}';
+    }
+    return cep;
+  }
+
   String formatarValor(dynamic valor) {
     if (valor != null) {
       return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';

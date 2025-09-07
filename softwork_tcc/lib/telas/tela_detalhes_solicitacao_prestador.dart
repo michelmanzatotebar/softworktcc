@@ -246,6 +246,7 @@ class _TelaDetalhesSolicitacaoPrestadorState extends State<TelaDetalhesSolicitac
                           _controller.buildInfoRow('Email', _controller.getClienteEmail()),
                           _controller.buildInfoRow('Telefone', _controller.getClienteTelefone()),
                           _controller.buildInfoRow('Logradouro', _controller.getClienteLogradouro()),
+                          _controller.buildInfoRow('CEP', _controller.getClienteCep()),
                         ],
                       ),
                     ),
