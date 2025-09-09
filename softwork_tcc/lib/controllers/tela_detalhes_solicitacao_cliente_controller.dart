@@ -9,29 +9,31 @@ class TelaDetalhesSolicitacaoController {
   final TextEditingController tituloEditController = TextEditingController();
   final TextEditingController descricaoEditController = TextEditingController();
 
-  bool editandoTitulo = false;
-  bool editandoDescricao = false;
-  bool isLoading = false;
-
   Map<String, dynamic>? dadosSolicitacao;
   Map<String, dynamic>? dadosPrestadorCompletos;
+  bool isLoading = false;
+  bool editandoTitulo = false;
+  bool editandoDescricao = false;
 
   VoidCallback? onUpdateUI;
   Function(String, bool)? onShowMessage;
   VoidCallback? onNavigateBack;
 
-  Future<void> inicializarDados(Map<String, dynamic> dados, {
-    VoidCallback? updateUI,
-    Function(String, bool)? messageCallback,
-    VoidCallback? navigateBack,
-    String? clienteNome,
-    String? clienteCpfCnpj,
-  }) async {
-    dadosSolicitacao = _processarDadosFirebase(dados);
+  String? clienteNome;
+  String? clienteCpfCnpj;
+
+  Future<void> inicializarDados(
+      Map<String, dynamic> solicitacao, {
+        VoidCallback? updateUI,
+        Function(String, bool)? messageCallback,
+        VoidCallback? navigateBack,
+        String? clienteNome,
+        String? clienteCpfCnpj,
+      }) async {
+    dadosSolicitacao = _processarDadosFirebase(solicitacao);
     onUpdateUI = updateUI;
     onShowMessage = messageCallback;
     onNavigateBack = navigateBack;
-
     this.clienteNome = clienteNome;
     this.clienteCpfCnpj = clienteCpfCnpj;
 
@@ -39,6 +41,11 @@ class TelaDetalhesSolicitacaoController {
     descricaoEditController.text = descricao ?? '';
 
     await _buscarDadosPrestadorCompletos();
+
+    print("=== DADOS INICIALIZADOS ===");
+    print("Solicitacao completa: $dadosSolicitacao");
+    print("Prestador completo: $dadosPrestadorCompletos");
+    print("==========================");
   }
 
   Map<String, dynamic> _processarDadosFirebase(dynamic dados) {
@@ -93,9 +100,6 @@ class TelaDetalhesSolicitacaoController {
     }
   }
 
-  String? clienteNome;
-  String? clienteCpfCnpj;
-
   String? get titulo => dadosSolicitacao?['titulo']?.toString();
   String? get descricao => dadosSolicitacao?['descricao']?.toString();
 
@@ -126,7 +130,6 @@ class TelaDetalhesSolicitacaoController {
   String? get dataSolicitacao => dadosSolicitacao?['dataSolicitacao']?.toString();
   String? get statusSolicitacao => dadosSolicitacao?['statusSolicitacao']?.toString();
 
-  // Corrigido: pega a categoria do serviço
   String? get categoria => servico?['categoria']?.toString();
 
   String getPrestadorNome() {
@@ -177,7 +180,18 @@ class TelaDetalhesSolicitacaoController {
 
   void salvarTitulo() {
     String novoTitulo = tituloEditController.text.trim();
-    if (novoTitulo.isNotEmpty && dadosSolicitacao != null) {
+
+    if (novoTitulo.isEmpty) {
+      onShowMessage?.call('Título é obrigatório', false);
+      return;
+    }
+
+    if (novoTitulo.length < 3) {
+      onShowMessage?.call('Título deve ter pelo menos 3 caracteres', false);
+      return;
+    }
+
+    if (dadosSolicitacao != null) {
       dadosSolicitacao!['titulo'] = novoTitulo;
     }
     editandoTitulo = false;
@@ -197,7 +211,18 @@ class TelaDetalhesSolicitacaoController {
 
   void salvarDescricao() {
     String novaDescricao = descricaoEditController.text.trim();
-    if (novaDescricao.isNotEmpty && dadosSolicitacao != null) {
+
+    if (novaDescricao.isEmpty) {
+      onShowMessage?.call('Descrição é obrigatória', false);
+      return;
+    }
+
+    if (novaDescricao.length < 10) {
+      onShowMessage?.call('Descrição deve ter pelo menos 10 caracteres', false);
+      return;
+    }
+
+    if (dadosSolicitacao != null) {
       dadosSolicitacao!['descricao'] = novaDescricao;
     }
     editandoDescricao = false;
