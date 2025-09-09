@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:firebase_database/firebase_database.dart';
 
 class PrestadorSolicitacoesAndamentoController {
@@ -41,9 +40,10 @@ class PrestadorSolicitacoesAndamentoController {
           Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
           solicitacao['id'] = key;
 
+          // MUDANÇA: Agora traz TODAS as solicitações do prestador que NÃO são pendentes
           if (solicitacao['prestador'] != null &&
               solicitacao['prestador']['cpfCnpj'].toString() == prestadorCpfCnpj &&
-              (solicitacao['statusSolicitacao'] == 'Aceita' || solicitacao['statusSolicitacao'] == 'Recusada')) {
+              solicitacao['statusSolicitacao'] != 'Pendente') {
             solicitacoesDoPrestador.add(solicitacao);
           }
         });

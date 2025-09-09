@@ -19,7 +19,9 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
   final ClienteSolicitacoesAndamentoController _controller = ClienteSolicitacoesAndamentoController();
 
   List<Map<String, dynamic>> _solicitacoes = [];
+  List<Map<String, dynamic>> _solicitacoesFiltradas = [];
   bool _isLoading = true;
+  String _filtroSelecionado = 'Todos';
 
   @override
   void initState() {
@@ -38,6 +40,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
       solicitacoesCallback: (List<Map<String, dynamic>> solicitacoes) {
         setState(() {
           _solicitacoes = solicitacoes;
+          _aplicarFiltro();
         });
       },
       errorCallback: (String error) {
@@ -53,6 +56,19 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
 
   void _carregarSolicitacoes() {
     _controller.carregarSolicitacoesCliente(widget.cpfCnpj);
+  }
+
+  void _aplicarFiltro() {
+    setState(() {
+      if (_filtroSelecionado == 'Todos') {
+        _solicitacoesFiltradas = List.from(_solicitacoes);
+      } else {
+        _solicitacoesFiltradas = _solicitacoes.where((solicitacao) {
+          String status = solicitacao['statusSolicitacao'] ?? '';
+          return status.toLowerCase() == _filtroSelecionado.toLowerCase();
+        }).toList();
+      }
+    });
   }
 
   void _mostrarDetalhesSolicitacao(Map<String, dynamic> solicitacao) {
@@ -182,13 +198,29 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await _cancelarSolicitacao(solicitacao['id']);
+                try {
+                  await _controller.cancelarSolicitacao(solicitacao['id']?.toString() ?? '');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Solicitação cancelada com sucesso'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _carregarSolicitacoes();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao cancelar solicitação'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.red[600],
                 foregroundColor: Colors.white,
               ),
-              child: Text('Sim, Cancelar'),
+              child: Text('Sim, cancelar'),
             ),
           ],
         );
@@ -196,25 +228,51 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
     );
   }
 
-  Future<void> _cancelarSolicitacao(String solicitacaoId) async {
-    try {
-      await _controller.cancelarSolicitacao(solicitacaoId);
-      _carregarSolicitacoes();
+  Widget _buildFiltros() {
+    final filtros = ['Todos', 'Pendente', 'Aceita', 'Recusada'];
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Solicitação cancelada com sucesso'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao cancelar solicitação'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    return Container(
+      height: 50,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: filtros.length,
+        itemBuilder: (context, index) {
+          final filtro = filtros[index];
+          final isSelected = _filtroSelecionado == filtro;
+
+          return Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _filtroSelecionado = filtro;
+                  _aplicarFiltro();
+                });
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.red[600] : Colors.grey[200],
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: isSelected ? Colors.red[600]! : Colors.grey[300]!,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  filtro,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.grey[700],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -247,7 +305,6 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: Center(
                       child: Text(
@@ -260,18 +317,21 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                       ),
                     ),
                   ),
-
                   SizedBox(width: 40),
                 ],
               ),
 
-              SizedBox(height: 40),
+              SizedBox(height: 30),
+
+              _buildFiltros(),
+
+              SizedBox(height: 20),
 
               if (!_isLoading) ...[
                 Padding(
                   padding: EdgeInsets.only(bottom: 16),
                   child: Text(
-                    '${_solicitacoes.length} solicitações em andamento:',
+                    '${_solicitacoesFiltradas.length} solicitações encontradas:',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -288,10 +348,12 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
                   ),
                 )
-                    : _solicitacoes.isEmpty
+                    : _solicitacoesFiltradas.isEmpty
                     ? Center(
                   child: Text(
-                    'Nenhuma solicitação encontrada',
+                    _filtroSelecionado == 'Todos'
+                        ? 'Nenhuma solicitação encontrada'
+                        : 'Nenhuma solicitação ${_filtroSelecionado.toLowerCase()} encontrada',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.red[400],
@@ -300,9 +362,9 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                   ),
                 )
                     : ListView.builder(
-                  itemCount: _solicitacoes.length,
+                  itemCount: _solicitacoesFiltradas.length,
                   itemBuilder: (context, index) {
-                    final solicitacao = _solicitacoes[index];
+                    final solicitacao = _solicitacoesFiltradas[index];
                     return _buildSolicitacaoCard(solicitacao, index);
                   },
                 ),
@@ -411,25 +473,25 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.green[600],
+                    color: Colors.red[600],
                   ),
                 ),
-
-                GestureDetector(
-                  onTap: () => _mostrarDetalhesSolicitacao(solicitacao),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.red[600],
+                ElevatedButton(
+                  onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      'Ver detalhes',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: Text(
+                    'Ver Detalhes',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

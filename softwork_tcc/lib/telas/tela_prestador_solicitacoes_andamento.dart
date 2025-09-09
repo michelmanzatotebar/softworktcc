@@ -19,7 +19,9 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
   final PrestadorSolicitacoesAndamentoController _controller = PrestadorSolicitacoesAndamentoController();
 
   List<Map<String, dynamic>> _solicitacoes = [];
+  List<Map<String, dynamic>> _solicitacoesFiltradas = [];
   bool _isLoading = true;
+  String _filtroSelecionado = 'Todas';
 
   @override
   void initState() {
@@ -38,6 +40,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
       solicitacoesCallback: (List<Map<String, dynamic>> solicitacoes) {
         setState(() {
           _solicitacoes = solicitacoes;
+          _aplicarFiltro();
         });
       },
       errorCallback: (String error) {
@@ -53,6 +56,19 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
 
   void _carregarSolicitacoes() {
     _controller.carregarSolicitacoesPrestador(widget.cpfCnpj);
+  }
+
+  void _aplicarFiltro() {
+    setState(() {
+      if (_filtroSelecionado == 'Todas') {
+        _solicitacoesFiltradas = List.from(_solicitacoes);
+      } else {
+        _solicitacoesFiltradas = _solicitacoes.where((solicitacao) {
+          String status = solicitacao['statusSolicitacao'] ?? '';
+          return status.toLowerCase() == _filtroSelecionado.toLowerCase();
+        }).toList();
+      }
+    });
   }
 
   void _mostrarDetalhesSolicitacao(Map<String, dynamic> solicitacao) {
@@ -102,10 +118,11 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: Text(
-                    solicitacao['descricao'] ?? 'Sem descrição',
+                    solicitacao['descricao'] ?? 'N/A',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: Colors.grey[800],
+                      height: 1.4,
                     ),
                   ),
                 ),
@@ -113,8 +130,12 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
             ),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[600],
+                foregroundColor: Colors.white,
+              ),
               child: Text('Fechar'),
             ),
           ],
@@ -127,15 +148,17 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[600],
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
           ),
         ),
-        SizedBox(width: 8),
         Expanded(
           child: Text(
             value,
@@ -146,6 +169,53 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFiltros() {
+    return Container(
+      height: 50,
+      child: Row(
+        children: [
+          _buildBotaoFiltro('Todas'),
+          SizedBox(width: 12),
+          _buildBotaoFiltro('Aceita'),
+          SizedBox(width: 12),
+          _buildBotaoFiltro('Recusada'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBotaoFiltro(String filtro) {
+    final isSelected = _filtroSelecionado == filtro;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _filtroSelecionado = filtro;
+          _aplicarFiltro();
+        });
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.red[600] : Colors.grey[200],
+          borderRadius: BorderRadius.circular(25),
+          border: Border.all(
+            color: isSelected ? Colors.red[600]! : Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          filtro,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey[700],
+          ),
+        ),
+      ),
     );
   }
 
@@ -179,11 +249,10 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                       ),
                     ),
                   ),
-
                   Expanded(
                     child: Center(
                       child: Text(
-                        'Solicitações em Andamento',
+                        'Minhas Solicitações',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -192,18 +261,23 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                       ),
                     ),
                   ),
-
                   SizedBox(width: 40),
                 ],
               ),
 
-              SizedBox(height: 40),
+              SizedBox(height: 30),
+
+              _buildFiltros(),
+
+              SizedBox(height: 20),
 
               if (!_isLoading) ...[
                 Padding(
                   padding: EdgeInsets.only(bottom: 16),
                   child: Text(
-                    '${_solicitacoes.length} solicitações em andamento:',
+                    _filtroSelecionado == 'Todas'
+                        ? '${_solicitacoesFiltradas.length} solicitações encontradas:'
+                        : '${_solicitacoesFiltradas.length} solicitações ${_filtroSelecionado.toLowerCase()}s:',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -220,10 +294,12 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
                   ),
                 )
-                    : _solicitacoes.isEmpty
+                    : _solicitacoesFiltradas.isEmpty
                     ? Center(
                   child: Text(
-                    'Nenhuma solicitação encontrada',
+                    _filtroSelecionado == 'Todas'
+                        ? 'Nenhuma solicitação encontrada'
+                        : 'Nenhuma solicitação ${_filtroSelecionado.toLowerCase()} encontrada',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.red[400],
@@ -232,9 +308,9 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                   ),
                 )
                     : ListView.builder(
-                  itemCount: _solicitacoes.length,
+                  itemCount: _solicitacoesFiltradas.length,
                   itemBuilder: (context, index) {
-                    final solicitacao = _solicitacoes[index];
+                    final solicitacao = _solicitacoesFiltradas[index];
                     return _buildSolicitacaoCard(solicitacao, index);
                   },
                 ),
@@ -273,27 +349,14 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        solicitacao['titulo'] ?? 'Título da solicitação',
+                        solicitacao['titulo'] ?? 'Sem título',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                           color: Colors.black87,
                         ),
                       ),
-
                       SizedBox(height: 4),
-
-                      Text(
-                        '${solicitacao['servico']?['nome'] ?? 'Serviço'}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-
-                      SizedBox(height: 6),
-
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
@@ -312,37 +375,34 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     ],
                   ),
                 ),
-
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      _controller.formatarData(solicitacao['dataSolicitacao'] ?? ''),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-
-                    SizedBox(height: 4),
-
-                    Text(
-                      'Cliente: ${solicitacao['cliente']?['nome'] ?? 'N/A'}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
 
-            SizedBox(height: 8),
+            SizedBox(height: 12),
 
             Text(
-              '${solicitacao['descricao'] ?? ''}',
+              'Serviço: ${solicitacao['servico']?['nome'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            Text(
+              'Cliente: ${solicitacao['cliente']?['nome'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+
+            SizedBox(height: 4),
+
+            Text(
+              'Data: ${_controller.formatarData(solicitacao['dataSolicitacao'] ?? '')}',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -359,25 +419,25 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.green[600],
+                    color: Colors.red[600],
                   ),
                 ),
-
-                GestureDetector(
-                  onTap: () => _mostrarDetalhesSolicitacao(solicitacao),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.red[600],
+                ElevatedButton(
+                  onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      'Ver detalhes',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                  child: Text(
+                    'Ver Detalhes',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
