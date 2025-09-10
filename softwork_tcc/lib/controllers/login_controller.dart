@@ -51,6 +51,122 @@ class LoginController {
     }
   }
 
+  Future<void> loginComEmailSenha(String email, String senha) async {
+    _setLoading(true);
+
+    try {
+      print("Iniciando login com email/senha...");
+
+      UserCredential? userCredential;
+      User? userFinal;
+
+      try {
+        userCredential = await _auth.signInWithEmailAndPassword(
+          email: email.trim(),
+          password: senha,
+        );
+
+        userFinal = userCredential.user;
+
+      } catch (e) {
+        print("Erro durante signInWithEmailAndPassword: $e");
+
+        if (e.toString().contains('PigeonUserDetails') ||
+            e.toString().contains('List<Object?>') ||
+            e.toString().contains('type cast')) {
+
+          print("Erro conhecido do Firebase Auth, verificando currentUser...");
+
+          await Future.delayed(Duration(milliseconds: 500));
+
+          User? currentUser = _auth.currentUser;
+          if (currentUser != null && currentUser.email == email.trim()) {
+            print("Login realizado apesar do erro! Email: ${currentUser.email}");
+            userFinal = currentUser;
+          } else {
+            throw e;
+          }
+        } else {
+          throw e;
+        }
+      }
+
+      if (userFinal != null) {
+        print("Login realizado com sucesso: ${userFinal.email}");
+        print("UID do usuário: ${userFinal.uid}");
+        await _verificarCadastroCompleto(userFinal);
+      } else {
+        throw Exception("Usuário nulo após login");
+      }
+
+    } on FirebaseAuthException catch (e) {
+      print("FirebaseAuthException: ${e.code}");
+
+      String mensagemErro = 'Erro login, verifique o email ou senha digitado';
+
+      switch(e.code) {
+        case 'user-not-found':
+          mensagemErro = 'Erro login, verifique o email ou senha digitado';
+          break;
+        case 'wrong-password':
+          mensagemErro = 'Erro login, verifique o email ou senha digitado';
+          break;
+        case 'invalid-email':
+          mensagemErro = 'Email inválido';
+          break;
+        case 'user-disabled':
+          mensagemErro = 'Usuário desabilitado';
+          break;
+        case 'too-many-requests':
+          mensagemErro = 'Muitas tentativas. Tente novamente mais tarde';
+          break;
+        case 'invalid-credential':
+          mensagemErro = 'Erro login, verifique o email ou senha digitado';
+          break;
+      }
+
+      onShowMessage?.call(mensagemErro, false);
+
+    } catch (e) {
+      print("Erro geral ao fazer login: $e");
+      print("Tipo do erro: ${e.runtimeType}");
+
+      String mensagemErro = 'Erro ao fazer login. Tente novamente.';
+
+      if (e.toString().contains('network')) {
+        mensagemErro = 'Erro de conexão. Verifique sua internet.';
+      }
+
+      onShowMessage?.call(mensagemErro, false);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> criarContaComEmailSenha(String email, String senha) async {
+    if (email.trim().isEmpty || senha.isEmpty) {
+      onShowMessage?.call('Email e senha são obrigatórios', false);
+      return;
+    }
+
+    if (senha.length < 6) {
+      onShowMessage?.call('Senha deve ter pelo menos 6 caracteres', false);
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(email.trim())) {
+      onShowMessage?.call('Email inválido', false);
+      return;
+    }
+
+    onNavigateToCadastro?.call(
+        email.trim(),
+        '',
+        ''
+    );
+  }
+
   Future<void> loginComGoogle() async {
     _setLoading(true);
 
@@ -120,8 +236,13 @@ class LoginController {
 
   Future<void> _verificarCadastroCompleto(User user) async {
     try {
+      print("DEBUG VERIFICAR CADASTRO");
+      print("Email do usuário: ${user.email}");
+      print("UID do usuário: ${user.uid}");
+
       final DatabaseReference ref = FirebaseDatabase.instance.ref();
 
+      print("Buscando no banco de dados...");
       final snapshot = await ref.child('usuarios').get();
 
       if (snapshot.exists) {
@@ -135,6 +256,9 @@ class LoginController {
           var dados = entry.value as Map<dynamic, dynamic>;
 
           if (dados['email'] == user.email) {
+            print("Email encontrado! Verificando completude...");
+
+
             if (dados['nome'] != null &&
                 dados['logradouro'] != null &&
                 dados['cep'] != null &&
@@ -143,45 +267,29 @@ class LoginController {
               cpfCnpjUsuario = entry.key;
               dadosUsuario = dados;
               break;
+            } else {
             }
           }
         }
 
         if (cadastroCompleto && cpfCnpjUsuario != null && dadosUsuario != null) {
-          print("Usuário já possui cadastro completo. CPF/CNPJ: $cpfCnpjUsuario");
-          print("Tipo de conta: ${dadosUsuario['tipoConta']}");
+          print("Redirecionando para tela principal...");
 
-          await _redirecionarParaTelaPrincipal(dadosUsuario, cpfCnpjUsuario);
+          bool isPrestador = dadosUsuario['tipoConta'] == false;
+
+          onNavigateToMain?.call(dadosUsuario, cpfCnpjUsuario, isPrestador);
         } else {
-          _navegarParaCadastro(user);
+          print("Cadastro incompleto ou não encontrado. Redirecionando para cadastro...");
+          onNavigateToCadastro?.call(user.email!, user.uid, user.displayName ?? '');
         }
       } else {
-        _navegarParaCadastro(user);
+        print("Nenhum usuário encontrado no banco. Redirecionando para cadastro...");
+        onNavigateToCadastro?.call(user.email!, user.uid, user.displayName ?? '');
       }
+
     } catch (e) {
-      print("Erro ao verificar cadastro: $e");
-      _navegarParaCadastro(user);
+      print("ERRO ao verificar cadastro completo: $e");
+      onShowMessage?.call('Erro ao verificar dados do usuário', false);
     }
-  }
-
-  Future<void> _redirecionarParaTelaPrincipal(Map<dynamic, dynamic> dadosUsuario, String cpfCnpj) async {
-    bool tipoConta = dadosUsuario['tipoConta'] as bool;
-
-    if (tipoConta) {
-      print("Redirecionando para tela principal do CLIENTE");
-    } else {
-      print("Redirecionando para tela principal do PRESTADOR");
-    }
-
-    onShowMessage?.call('Login feito com sucesso!', true);
-    onNavigateToMain?.call(dadosUsuario, cpfCnpj, tipoConta);
-  }
-
-  void _navegarParaCadastro(User user) {
-    onNavigateToCadastro?.call(
-      user.email ?? '',
-      user.displayName ?? '',
-      user.uid,
-    );
   }
 }
