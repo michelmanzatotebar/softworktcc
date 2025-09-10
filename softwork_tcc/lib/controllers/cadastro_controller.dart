@@ -93,19 +93,31 @@ class CadastroController {
     _setLoading(true);
 
     try {
+      print("=== DEBUG CADASTRO CONTROLLER ===");
+      print("Email: $email");
+      print("UID: $uid");
+      print("Nome: $nome");
+      print("CPF/CNPJ: $cpfCnpj");
+
       String cpfCnpjLimpo = cpfCnpj.replaceAll(RegExp(r'[^\d]'), '');
       String telefoneLimpo = telefone.replaceAll(RegExp(r'[^\d]'), '');
       String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
 
+      print("CPF/CNPJ limpo: $cpfCnpjLimpo");
+
       final DatabaseReference ref = FirebaseDatabase.instance.ref();
 
+      print("Verificando se CPF/CNPJ já existe...");
       final snapshot = await ref.child('usuarios/$cpfCnpjLimpo').get();
 
       if (snapshot.exists) {
+        print("CPF/CNPJ já existe no banco");
         onShowMessage?.call('Já existe uma conta cadastrada com este CPF/CNPJ', false);
         _setLoading(false);
         return;
       }
+
+      print("CPF/CNPJ livre, criando dados...");
 
       Map<String, dynamic> dadosUsuario = {
         'email': email,
@@ -119,21 +131,32 @@ class CadastroController {
         'uid': uid,
       };
 
+      print("Dados a salvar: $dadosUsuario");
+      print("Salvando no banco...");
+
       await ref.child('usuarios/$cpfCnpjLimpo').set(dadosUsuario);
 
       print("Cadastro realizado com sucesso!");
+      print("UID salvo: $uid");
 
       onShowMessage?.call('Cadastro realizado com sucesso!', true);
 
-      await FirebaseAuth.instance.signOut();
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
+      // Só fazer logout se for Google (uid não vazio na entrada)
+      // Para email/senha, usuário já está logado após criar conta
+      if (uid.isNotEmpty) {
+        print("Fazendo logout...");
+        await FirebaseAuth.instance.signOut();
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        await googleSignIn.signOut();
+        print("Logout concluído");
+      }
 
       onCadastroSucesso?.call();
 
     } catch (e) {
-      print("Erro ao cadastrar: $e");
-      onShowMessage?.call('Erro ao realizar cadastro', false);
+      print("ERRO NO CADASTRO CONTROLLER: $e");
+      print("TIPO ERRO: ${e.runtimeType}");
+      onShowMessage?.call('Erro ao realizar cadastro: ${e.toString()}', false);
     } finally {
       _setLoading(false);
     }
