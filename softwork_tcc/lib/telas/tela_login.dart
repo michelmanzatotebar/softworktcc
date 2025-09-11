@@ -316,7 +316,7 @@ class _TelaLoginState extends State<TelaLogin> {
                         ),
                       )
                           : Text(
-                        'Entrar',
+                        'Login',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
