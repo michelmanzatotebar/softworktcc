@@ -37,6 +37,7 @@ class ChatMessage {
   final String authorId;
   final DateTime createdAt;
   final String type;
+  final String status; // 'sending', 'sent', 'delivered', 'read'
 
   ChatMessage({
     required this.id,
@@ -44,9 +45,24 @@ class ChatMessage {
     required this.authorId,
     required this.createdAt,
     this.type = 'text',
+    this.status = 'sending',
   });
 
   bool isAuthor(String userId) => authorId == userId;
+
+  String get timeFormatted {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final messageDate = DateTime(createdAt.year, createdAt.month, createdAt.day);
+
+    if (messageDate == today) {
+      // Hoje - mostrar apenas hora
+      return '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+    } else {
+      // Outro dia - mostrar data e hora
+      return '${createdAt.day}/${createdAt.month} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+    }
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -55,6 +71,7 @@ class ChatMessage {
       'authorId': authorId,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'type': type,
+      'status': status,
     };
   }
 
@@ -65,6 +82,19 @@ class ChatMessage {
       authorId: map['authorId']?.toString() ?? '',
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
       type: map['type']?.toString() ?? 'text',
+      status: map['status']?.toString() ?? 'sent',
+    );
+  }
+
+  // Método para atualizar status
+  ChatMessage copyWith({String? status}) {
+    return ChatMessage(
+      id: id,
+      text: text,
+      authorId: authorId,
+      createdAt: createdAt,
+      type: type,
+      status: status ?? this.status,
     );
   }
 }

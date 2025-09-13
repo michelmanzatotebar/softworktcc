@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../models/chat_models.dart';
+import 'dart:async';
 
 class ChatPrestadorClienteController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
@@ -23,21 +24,29 @@ class ChatPrestadorClienteController {
   Map<String, dynamic>? _solicitacao;
   String? _roomId;
 
+  // Indicador de digitação
+  bool _outroUsuarioDigitando = false;
+  bool get outroUsuarioDigitando => _outroUsuarioDigitando;
+  Timer? _typingTimer;
+
   Function(bool)? onLoadingChanged;
   Function(List<ChatMessage>)? onMessagesChanged;
   Function(String)? onError;
   Function()? onUpdateUI;
+  Function(bool)? onTypingChanged;
 
   void setCallbacks({
     Function(bool)? loadingCallback,
     Function(List<ChatMessage>)? messagesCallback,
     Function(String)? errorCallback,
     Function()? updateUICallback,
+    Function(bool)? typingCallback,
   }) {
     onLoadingChanged = loadingCallback;
     onMessagesChanged = messagesCallback;
     onError = errorCallback;
     onUpdateUI = updateUICallback;
+    onTypingChanged = typingCallback;
   }
 
   Future<void> inicializarChat({
@@ -87,6 +96,9 @@ class ChatPrestadorClienteController {
 
       // Escutar mensagens
       _escutarMensagens();
+
+      // Escutar indicador de digitação
+      _escutarIndicadorDigitacao();
 
       _isLoading = false;
       onLoadingChanged?.call(false);
@@ -179,6 +191,9 @@ class ChatPrestadorClienteController {
             // Ordenar por data (mais antigas primeiro)
             _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
+            // Marcar mensagens do outro usuário como lidas
+            _marcarMensagensComoLidas();
+
             print("Mensagens carregadas: ${_messages.length}");
             onMessagesChanged?.call(_messages);
             onUpdateUI?.call();
@@ -196,6 +211,42 @@ class ChatPrestadorClienteController {
     }
   }
 
+  void _escutarIndicadorDigitacao() {
+    if (_roomId != null && _outroUsuario != null) {
+      _ref.child('chat/typing/$_roomId/${_outroUsuario!.id}').onValue.listen(
+            (event) {
+          final isTyping = event.snapshot.value == true;
+          if (_outroUsuarioDigitando != isTyping) {
+            _outroUsuarioDigitando = isTyping;
+            onTypingChanged?.call(isTyping);
+            onUpdateUI?.call();
+          }
+        },
+        onError: (error) {
+          print("Erro ao escutar indicador de digitação: $error");
+        },
+      );
+    }
+  }
+
+  Future<void> _marcarMensagensComoLidas() async {
+    if (_roomId == null || _usuarioAtual == null) return;
+
+    try {
+      final mensagensNaoLidas = _messages.where((msg) =>
+      msg.authorId != _usuarioAtual!.id && msg.status != 'read'
+      ).toList();
+
+      for (final message in mensagensNaoLidas) {
+        await _ref.child('chat/messages/$_roomId/${message.id}').update({
+          'status': 'read'
+        });
+      }
+    } catch (e) {
+      print("Erro ao marcar mensagens como lidas: $e");
+    }
+  }
+
   Future<void> enviarMensagem(String texto) async {
     if (_roomId == null || texto.trim().isEmpty || _usuarioAtual == null) return;
 
@@ -207,9 +258,19 @@ class ChatPrestadorClienteController {
         text: texto.trim(),
         authorId: _usuarioAtual!.id,
         createdAt: DateTime.now(),
+        status: 'sending',
       );
 
+      // Parar indicador de digitação
+      pararDigitacao();
+
+      // Salvar mensagem
       await _ref.child('chat/messages/$_roomId/$messageId').set(message.toMap());
+
+      // Atualizar status para 'sent'
+      await _ref.child('chat/messages/$_roomId/$messageId').update({
+        'status': 'sent'
+      });
 
       // Atualizar última mensagem na Room
       await _ref.child('chat/rooms/$_roomId').update({
@@ -222,6 +283,27 @@ class ChatPrestadorClienteController {
     } catch (e) {
       print("Erro ao enviar mensagem: $e");
       onError?.call("Erro ao enviar mensagem");
+    }
+  }
+
+  void indicarDigitacao() {
+    if (_roomId != null && _usuarioAtual != null) {
+      _ref.child('chat/typing/$_roomId/${_usuarioAtual!.id}').set(true);
+
+      // Cancelar timer anterior
+      _typingTimer?.cancel();
+
+      // Parar indicador após 3 segundos
+      _typingTimer = Timer(Duration(seconds: 3), () {
+        pararDigitacao();
+      });
+    }
+  }
+
+  void pararDigitacao() {
+    if (_roomId != null && _usuarioAtual != null) {
+      _ref.child('chat/typing/$_roomId/${_usuarioAtual!.id}').set(false);
+      _typingTimer?.cancel();
     }
   }
 
@@ -246,5 +328,6 @@ class ChatPrestadorClienteController {
     _outroUsuario = null;
     _solicitacao = null;
     _roomId = null;
+    _typingTimer?.cancel();
   }
 }

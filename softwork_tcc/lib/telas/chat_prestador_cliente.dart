@@ -27,6 +27,7 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
 
   bool _isLoading = true;
   List<ChatMessage> _messages = [];
+  bool _outroUsuarioDigitando = false;
 
   @override
   void initState() {
@@ -60,6 +61,11 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
         if (mounted) {
           setState(() {});
         }
+      },
+      typingCallback: (bool isTyping) {
+        setState(() {
+          _outroUsuarioDigitando = isTyping;
+        });
       },
     );
   }
@@ -152,6 +158,15 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
+            if (_outroUsuarioDigitando)
+              Text(
+                'Digitando...',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.green[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
           ],
         ),
         actions: [
@@ -227,65 +242,118 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
     final isMe = message.isAuthor(widget.cpfUsuarioAtual);
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+      margin: EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!isMe) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.grey[300],
-              child: Text(
-                _controller.outroUsuario?.initials ?? '?',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+          Row(
+            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMe) ...[
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.grey[300],
+                  child: Text(
+                    _controller.outroUsuario?.initials ?? '?',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isMe ? Colors.red[600] : Colors.grey[200],
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(isMe ? 20 : 4),
+                      bottomRight: Radius.circular(isMe ? 4 : 20),
+                    ),
+                  ),
+                  child: Text(
+                    message.text,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isMe ? Colors.white : Colors.black87,
+                      height: 1.3,
+                    ),
+                  ),
                 ),
               ),
+              if (isMe) ...[
+                SizedBox(width: 8),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.red[100],
+                  child: Text(
+                    _controller.usuarioAtual?.initials ?? '?',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.red[700],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          // Timestamp e status
+          Padding(
+            padding: EdgeInsets.only(
+              top: 4,
+              left: isMe ? 0 : 40,
+              right: isMe ? 40 : 0,
             ),
-            SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isMe ? Colors.red[600] : Colors.grey[200],
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(isMe ? 20 : 4),
-                  bottomRight: Radius.circular(isMe ? 4 : 20),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+              children: [
+                Text(
+                  message.timeFormatted,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
                 ),
-              ),
-              child: Text(
-                message.text,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isMe ? Colors.white : Colors.black87,
-                  height: 1.3,
-                ),
-              ),
+                if (isMe) ...[
+                  SizedBox(width: 4),
+                  _buildStatusIcon(message.status),
+                ],
+              ],
             ),
           ),
-          if (isMe) ...[
-            SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.red[100],
-              child: Text(
-                _controller.usuarioAtual?.initials ?? '?',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.red[700],
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
+  }
+
+  Widget _buildStatusIcon(String status) {
+    switch (status) {
+      case 'sending':
+        return SizedBox(
+          width: 14,
+          height: 14,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+          ),
+        );
+      case 'sent':
+        return Icon(Icons.done, size: 14, color: Colors.grey[500]);
+      case 'delivered':
+        return Icon(Icons.done_all, size: 14, color: Colors.grey[500]);
+      case 'read':
+        return Icon(Icons.done_all, size: 14, color: Colors.red[600]);
+      default:
+        return SizedBox.shrink();
+    }
   }
 
   Widget _buildInputArea() {
@@ -321,6 +389,13 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                 ),
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
+                onChanged: (text) {
+                  if (text.trim().isNotEmpty) {
+                    _controller.indicarDigitacao();
+                  } else {
+                    _controller.pararDigitacao();
+                  }
+                },
                 onSubmitted: (_) => _enviarMensagem(),
               ),
             ),
