@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/prestador_solicitacoes_andamento_controller.dart';
+import '../telas/chat_prestador_cliente.dart';
 
 class TelaPrestadorSolicitacoesAndamento extends StatefulWidget {
   final String nomeUsuario;
@@ -69,6 +70,19 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
         }).toList();
       }
     });
+  }
+  void _abrirConversa(Map<String, dynamic> solicitacao) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPrestadorCliente(
+          solicitacao: solicitacao,
+          cpfUsuarioAtual: widget.cpfCnpj,
+          nomeUsuarioAtual: widget.nomeUsuario,
+          isCliente: false, // Prestador conversando com cliente
+        ),
+      ),
+    );
   }
 
   void _mostrarDetalhesSolicitacao(Map<String, dynamic> solicitacao) {
@@ -422,24 +436,61 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     color: Colors.red[600],
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[600],
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                Row(
+                  children: [
+                    if (solicitacao['statusSolicitacao']?.toString().toLowerCase() == 'aceita') ...[
+                      ElevatedButton(
+                        onPressed: () => _abrirConversa(solicitacao),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[600],
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              size: 14,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Abrir Chat',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                    ],
+
+                    ElevatedButton(
+                      onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[600],
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: Text(
+                        'Ver Detalhes',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  ),
-                  child: Text(
-                    'Ver Detalhes',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
