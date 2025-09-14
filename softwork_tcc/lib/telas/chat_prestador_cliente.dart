@@ -96,6 +96,7 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
     if (texto.isNotEmpty) {
       _controller.enviarMensagem(texto);
       _textController.clear();
+      setState(() {}); // Atualizar contador
     }
   }
 
@@ -160,9 +161,9 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
               ),
             if (_outroUsuarioDigitando)
               Text(
-                'Digitando...',
+                'digitando...',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   color: Colors.green[600],
                   fontStyle: FontStyle.italic,
                 ),
@@ -388,6 +389,11 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                   contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
                 maxLines: null,
+                maxLength: 500,
+                buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
+                  // Retorna null para esconder o contador visual
+                  return null;
+                },
                 textCapitalization: TextCapitalization.sentences,
                 onChanged: (text) {
                   if (text.trim().isNotEmpty) {
