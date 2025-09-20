@@ -14,43 +14,33 @@ class SolicitacaoController {
     required String prestadorCpfCnpj,
   }) async {
     try {
-      String? erro = _validarCampos(titulo: titulo, descricao: descricao);
+      final String solicitacaoId = _ref.child('solicitacoes').push().key!;
 
-      if (erro != null) {
-        throw Exception(erro);
-      }
-
-      String solicitacaoId = _ref.child('solicitacoes').push().key!;
-
-      Map<String, dynamic> novaSolicitacao = {
+      final Map<String, dynamic> solicitacao = {
         'id': solicitacaoId,
-        'titulo': titulo.trim(),
-        'descricao': descricao.trim(),
-        'categoria': categoria.trim(),
-        'servico': {
-          'id': servico['id'],
-          'nome': servico['nome'],
-          'descricao': servico['descricao'],
-          'valor': servico['valor'],
-        },
+        'titulo': titulo,
+        'descricao': descricao,
+        'categoria': categoria,
+        'servico': servico,
         'cliente': {
-          'nome': clienteNome.trim(),
-          'cpfCnpj': clienteCpfCnpj.trim(),
+          'nome': clienteNome,
+          'cpfCnpj': clienteCpfCnpj,
         },
         'prestador': {
-          'nome': prestadorNome.trim(),
-          'cpfCnpj': prestadorCpfCnpj.trim(),
+          'nome': prestadorNome,
+          'cpfCnpj': prestadorCpfCnpj,
         },
-        'dataSolicitacao': DateTime.now().toIso8601String(),
         'statusSolicitacao': 'Pendente',
+        'dataSolicitacao': DateTime.now().toIso8601String(),
       };
 
-      await _ref.child('solicitacoes/$solicitacaoId').set(novaSolicitacao);
+      await _ref.child('solicitacoes/$solicitacaoId').set(solicitacao);
 
-      return novaSolicitacao;
+      print("Solicitação criada com sucesso");
+      return solicitacao;
 
     } catch (e) {
-      throw Exception("Erro ao criar solicitação");
+      throw Exception("Erro ao criar solicitação: $e");
     }
   }
 
@@ -131,8 +121,8 @@ class SolicitacaoController {
     required String novoStatus,
   }) async {
     try {
-      if (!['Pendente', 'Aceita', 'Recusada', 'Concluida'].contains(novoStatus)) {
-        throw Exception("Status inválido. Use: Pendente, Aceita, Recusada ou Concluida");
+      if (!['Pendente', 'Aceita', 'Em andamento', 'Recusada', 'Cancelada', 'Concluída', 'Finalizado'].contains(novoStatus)) {
+        throw Exception("Status inválido. Use: Pendente, Aceita, Em andamento, Recusada, Cancelada, Concluída ou Finalizado");
       }
 
       await _ref.child('solicitacoes/$solicitacaoId').update({
@@ -200,30 +190,16 @@ class SolicitacaoController {
     }
   }
 
-  String? _validarCampos({
-    required String titulo,
-    required String descricao,
-  }) {
-    if (titulo.trim().isEmpty) {
-      return "Por favor, preencha o título da solicitação";
+  String formatarData(String dataISO) {
+    try {
+      DateTime data = DateTime.parse(dataISO);
+      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
+    } catch (e) {
+      return 'Data inválida';
     }
-
-    if (descricao.trim().isEmpty) {
-      return "Por favor, preencha a descrição da solicitação";
-    }
-
-    if (titulo.trim().length < 3) {
-      return "Título deve ter pelo menos 3 caracteres";
-    }
-
-    if (descricao.trim().length < 10) {
-      return "Descrição deve ter pelo menos 10 caracteres";
-    }
-
-    return null;
   }
 
-  String formatarData(String dataISO) {
+  String formatarDataCompleta(String dataISO) {
     try {
       DateTime data = DateTime.parse(dataISO);
       return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year} às ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';

@@ -1,12 +1,9 @@
-import 'dart:ui';
-
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 
 class ClienteSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
 
   Function(bool)? onLoadingChanged;
   Function(List<Map<String, dynamic>>)? onSolicitacoesChanged;
@@ -68,6 +65,25 @@ class ClienteSolicitacoesAndamentoController {
     }
   }
 
+  Future<void> definirConclusaoSolicitacao(String solicitacaoId, bool confirmado) async {
+    try {
+      _setLoading(true);
+
+      String novoStatus = confirmado ? 'Finalizado' : 'Em andamento';
+
+      await _ref.child('solicitacoes/$solicitacaoId').update({
+        'statusSolicitacao': novoStatus,
+      });
+
+      print("Conclusão definida - Status: $novoStatus");
+    } catch (e) {
+      print("Erro ao definir conclusão: $e");
+      onError?.call("Erro ao definir conclusão da solicitação");
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   String formatarData(String dataISO) {
     try {
       DateTime data = DateTime.parse(dataISO);
@@ -99,22 +115,22 @@ class ClienteSolicitacoesAndamentoController {
         return const Color(0xFFFF9800);
       case 'aceita':
         return const Color(0xFF4CAF50);
+      case 'em andamento':
+        return const Color(0xFF81C784);
       case 'recusada':
         return const Color(0xFFF44336);
-      case 'concluida':
+      case 'cancelada':
+        return const Color(0xFFF44336);
+      case 'concluída':
         return const Color(0xFF2196F3);
+      case 'finalizado':
+        return const Color(0xFFAB47BC);
       default:
         return const Color(0xFF757575);
     }
   }
 
-  Future<void> cancelarSolicitacao(String solicitacaoId) async {
-    try {
-      await _ref.child('solicitacoes/$solicitacaoId').remove();
-      print("Solicitação cancelada com sucesso");
-    } catch (e) {
-      print("Erro ao cancelar solicitação: $e");
-      throw Exception("Erro ao cancelar solicitação");
-    }
+  bool podeDefinirConclusao(String status) {
+    return status.toLowerCase() == 'concluída';
   }
 }

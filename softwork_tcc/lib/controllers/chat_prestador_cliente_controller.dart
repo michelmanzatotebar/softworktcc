@@ -24,7 +24,6 @@ class ChatPrestadorClienteController {
   Map<String, dynamic>? _solicitacao;
   String? _roomId;
 
-  // Indicador de digitação
   bool _outroUsuarioDigitando = false;
   bool get outroUsuarioDigitando => _outroUsuarioDigitando;
   Timer? _typingTimer;
@@ -67,13 +66,11 @@ class ChatPrestadorClienteController {
       print("Usuário atual: $nomeUsuarioAtual ($cpfUsuarioAtual)");
       print("É cliente: $isCliente");
 
-      // Criar usuário atual
       _usuarioAtual = _criarUsuario(
         cpf: cpfUsuarioAtual,
         nome: nomeUsuarioAtual,
       );
 
-      // Criar outro usuário
       if (isCliente) {
         _outroUsuario = _criarUsuario(
           cpf: solicitacao['prestador']['cpfCnpj'],
@@ -88,16 +85,12 @@ class ChatPrestadorClienteController {
 
       print("Outro usuário: ${_outroUsuario!.fullName} (${_outroUsuario!.id})");
 
-      // Registrar usuários no Realtime Database
       await _registrarUsuarios();
 
-      // Obter ou criar Room
       await _obterOuCriarRoom();
 
-      // Escutar mensagens
       _escutarMensagens();
 
-      // Escutar indicador de digitação
       _escutarIndicadorDigitacao();
 
       _isLoading = false;
@@ -129,11 +122,9 @@ class ChatPrestadorClienteController {
 
   Future<void> _registrarUsuarios() async {
     try {
-      // Registrar usuário atual
       await _ref.child('chat/users/${_usuarioAtual!.id}').set(_usuarioAtual!.toMap());
       print("Usuário atual registrado: ${_usuarioAtual!.firstName}");
 
-      // Registrar outro usuário
       await _ref.child('chat/users/${_outroUsuario!.id}').set(_outroUsuario!.toMap());
       print("Outro usuário registrado: ${_outroUsuario!.firstName}");
 
@@ -146,16 +137,13 @@ class ChatPrestadorClienteController {
     try {
       print("=== OBTENDO/CRIANDO ROOM ===");
 
-      // Verificar se Room já existe
       final snapshot = await _ref.child('chat/rooms/$_roomId').get();
 
       if (snapshot.exists) {
-        // Room já existe
         final roomData = Map<String, dynamic>.from(snapshot.value as Map);
         _room = ChatRoom.fromMap(_roomId!, roomData);
         print("Room existente encontrada: ${_room!.name}");
       } else {
-        // Criar nova Room
         _room = ChatRoom(
           id: _roomId!,
           name: "Solicitação: ${_solicitacao!['titulo']}",
@@ -188,10 +176,8 @@ class ChatPrestadorClienteController {
             })
                 .toList();
 
-            // Ordenar por data (mais antigas primeiro)
             _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-            // Marcar mensagens do outro usuário como lidas
             _marcarMensagensComoLidas();
 
             print("Mensagens carregadas: ${_messages.length}");
@@ -261,18 +247,14 @@ class ChatPrestadorClienteController {
         status: 'sending',
       );
 
-      // Parar indicador de digitação
       pararDigitacao();
 
-      // Salvar mensagem
       await _ref.child('chat/messages/$_roomId/$messageId').set(message.toMap());
 
-      // Atualizar status para 'sent'
       await _ref.child('chat/messages/$_roomId/$messageId').update({
         'status': 'sent'
       });
 
-      // Atualizar última mensagem na Room
       await _ref.child('chat/rooms/$_roomId').update({
         'lastMessage': texto.trim(),
         'lastMessageTime': DateTime.now().millisecondsSinceEpoch,
@@ -290,10 +272,8 @@ class ChatPrestadorClienteController {
     if (_roomId != null && _usuarioAtual != null) {
       _ref.child('chat/typing/$_roomId/${_usuarioAtual!.id}').set(true);
 
-      // Cancelar timer anterior
       _typingTimer?.cancel();
 
-      // Parar indicador após 3 segundos
       _typingTimer = Timer(Duration(seconds: 3), () {
         pararDigitacao();
       });
