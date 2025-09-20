@@ -72,6 +72,94 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
     });
   }
 
+  void _mostrarModalConclusao(Map<String, dynamic> solicitacao) {
+    String? opcaoSelecionada;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateModal) {
+            return AlertDialog(
+              title: Text(
+                'Definir Conclusão',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[600],
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'O prestador marcou este serviço como concluído.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  RadioListTile<String>(
+                    title: Text('Confirmar conclusão'),
+                    value: 'confirmar',
+                    groupValue: opcaoSelecionada,
+                    activeColor: Colors.red[600],
+                    onChanged: (String? value) {
+                      setStateModal(() {
+                        opcaoSelecionada = value;
+                      });
+                    },
+                  ),
+                  RadioListTile<String>(
+                    title: Text('Recusar conclusão'),
+                    value: 'recusar',
+                    groupValue: opcaoSelecionada,
+                    activeColor: Colors.red[600],
+                    onChanged: (String? value) {
+                      setStateModal(() {
+                        opcaoSelecionada = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: opcaoSelecionada != null
+                      ? () async {
+                    Navigator.of(context).pop();
+                    bool confirmado = opcaoSelecionada == 'confirmar';
+                    await _controller.definirConclusaoSolicitacao(
+                      solicitacao['id'],
+                      confirmado,
+                    );
+                    _carregarSolicitacoes();
+                  }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('Confirmar Status'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _abrirConversa(Map<String, dynamic> solicitacao) {
     Navigator.push(
       context,
@@ -80,7 +168,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
           solicitacao: solicitacao,
           cpfUsuarioAtual: widget.cpfCnpj,
           nomeUsuarioAtual: widget.nomeUsuario,
-          isCliente: true, // Cliente conversando com prestador
+          isCliente: true,
         ),
       ),
     );
@@ -133,11 +221,10 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                     border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: Text(
-                    solicitacao['descricao'] ?? 'N/A',
+                    solicitacao['descricao'] ?? 'Nenhuma descrição fornecida',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[800],
-                      height: 1.4,
                     ),
                   ),
                 ),
@@ -145,24 +232,12 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
             ),
           ),
           actions: [
-            if (solicitacao['statusSolicitacao'] == 'Pendente')
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _confirmarCancelamento(solicitacao);
-                },
-                child: Text(
-                  'Cancelar Solicitação',
-                  style: TextStyle(color: Colors.red[600]),
-                ),
-              ),
-            ElevatedButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
-                foregroundColor: Colors.white,
+              child: Text(
+                'Fechar',
+                style: TextStyle(color: Colors.red[600]),
               ),
-              child: Text('Fechar'),
             ),
           ],
         );
@@ -171,121 +246,32 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
   }
 
   Widget _buildDetalheRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _confirmarCancelamento(Map<String, dynamic> solicitacao) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Cancelar Solicitação'),
-          content: Text('Tem certeza que deseja cancelar esta solicitação?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Não'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await _controller.cancelarSolicitacao(solicitacao['id']?.toString() ?? '');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Solicitação cancelada com sucesso'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                  _carregarSolicitacoes();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao cancelar solicitação'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Sim, cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildFiltros() {
-    final filtros = ['Todos', 'Pendente', 'Aceita', 'Recusada'];
-
-    return Container(
-      height: 50,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: filtros.length,
-        itemBuilder: (context, index) {
-          final filtro = filtros[index];
-          final isSelected = _filtroSelecionado == filtro;
-
-          return Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _filtroSelecionado = filtro;
-                  _aplicarFiltro();
-                });
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.red[600] : Colors.grey[200],
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: isSelected ? Colors.red[600]! : Colors.grey[300]!,
-                    width: 1,
-                  ),
-                ),
-                child: Text(
-                  filtro,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? Colors.white : Colors.grey[700],
-                  ),
-                ),
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
               ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -293,7 +279,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(20),
@@ -303,9 +289,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       width: 40,
                       height: 40,
@@ -323,7 +307,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                   Expanded(
                     child: Center(
                       child: Text(
-                        'Minhas Solicitações',
+                        'Solicitações em Andamento',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -335,32 +319,49 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                   SizedBox(width: 40),
                 ],
               ),
-
               SizedBox(height: 30),
-
-              _buildFiltros(),
-
-              SizedBox(height: 20),
-
-              if (!_isLoading) ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFiltroChip('Todos'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Pendente'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Aceita'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Em andamento'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Concluída'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Finalizado'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Recusada'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Cancelada'),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              if (_solicitacoesFiltradas.isNotEmpty)
                 Padding(
-                  padding: EdgeInsets.only(bottom: 16),
+                  padding: EdgeInsets.only(bottom: 12),
                   child: Text(
-                    '${_solicitacoesFiltradas.length} solicitações encontradas:',
+                    _filtroSelecionado == 'Todos'
+                        ? '${_solicitacoesFiltradas.length} solicitações encontradas:'
+                        : '${_solicitacoesFiltradas.length} solicitações ${_filtroSelecionado.toLowerCase()}s:',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red[700],
+                      color: Colors.red[600],
                     ),
                   ),
                 ),
-              ],
-
               Expanded(
                 child: _isLoading
                     ? Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red[600]!),
                   ),
                 )
                     : _solicitacoesFiltradas.isEmpty
@@ -371,7 +372,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                         : 'Nenhuma solicitação ${_filtroSelecionado.toLowerCase()} encontrada',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.red[400],
+                      color: Colors.red[600],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -391,75 +392,99 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
     );
   }
 
+  Widget _buildFiltroChip(String filtro) {
+    bool isSelected = _filtroSelecionado == filtro;
+    return FilterChip(
+      label: Text(
+        filtro,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.red[600],
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        setState(() {
+          _filtroSelecionado = filtro;
+          _aplicarFiltro();
+        });
+      },
+      backgroundColor: Colors.white,
+      selectedColor: Colors.red[600],
+      checkmarkColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? Colors.red[600]! : Colors.red[400]!,
+        width: 1.5,
+      ),
+    );
+  }
+
   Widget _buildSolicitacaoCard(Map<String, dynamic> solicitacao, int index) {
     String status = solicitacao['statusSolicitacao'] ?? 'Pendente';
+    bool podeDefinirConclusao = _controller.podeDefinirConclusao(status);
+    bool chatDisponivel = ['Aceita', 'Em andamento', 'Concluída', 'Cancelada', 'Finalizado'].contains(status) && !['Pendente', 'Recusada'].contains(status);
 
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8),
-      elevation: 3,
-      color: Colors.grey[100],
+      elevation: 2,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.grey[300]!,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        solicitacao['titulo'] ?? 'Sem título',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _controller.getStatusColor(status),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    solicitacao['titulo'] ?? 'Serviço',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _controller.getStatusColor(status),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
-
             SizedBox(height: 12),
-
             Text(
               'Serviço: ${solicitacao['servico']?['nome'] ?? 'N/A'}',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
             ),
-
             SizedBox(height: 4),
-
+            Text(
+              'Categoria: ${solicitacao['servico']?['categoria'] ?? solicitacao['categoria'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 8),
             Text(
               'Prestador: ${solicitacao['prestador']?['nome'] ?? 'N/A'}',
               style: TextStyle(
@@ -467,9 +492,7 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                 color: Colors.grey[600],
               ),
             ),
-
             SizedBox(height: 4),
-
             Text(
               'Data: ${_controller.formatarData(solicitacao['dataSolicitacao'] ?? '')}',
               style: TextStyle(
@@ -477,79 +500,78 @@ class _TelaClienteSolicitacoesAndamentoState extends State<TelaClienteSolicitaco
                 color: Colors.grey[600],
               ),
             ),
-
-            SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _controller.formatarValor(solicitacao['servico']?['valor']),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.red[600],
-                  ),
+            if (solicitacao['descricao'] != null && solicitacao['descricao'].isNotEmpty) ...[
+              SizedBox(height: 12),
+              Text(
+                solicitacao['descricao'],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
                 ),
-                Row(
-                  children: [
-                    if (solicitacao['statusSolicitacao']?.toString().toLowerCase() == 'aceita') ...[
-                      ElevatedButton(
-                        onPressed: () => _abrirConversa(solicitacao),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[600],
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ],
+            SizedBox(height: 16),
+            Text(
+              _controller.formatarValor(solicitacao['servico']?['valor'] ?? solicitacao['valor']),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[600],
+              ),
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                if (podeDefinirConclusao)
+                  SizedBox(
+                    width: 120,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () => _mostrarModalConclusao(solicitacao),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[700],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 14,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Abrir Chat',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                       ),
-                      SizedBox(width: 8),
-                    ],
-
-                    ElevatedButton(
-                      onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                      child: Text(
+                        'Definir conclusão',
+                        style: TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ),
+                if (podeDefinirConclusao && chatDisponivel) SizedBox(width: 8),
+                if (chatDisponivel)
+                  SizedBox(
+                    width: 80,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () => _abrirConversa(solicitacao),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[600],
                         foregroundColor: Colors.white,
-                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                       ),
                       child: Text(
-                        'Ver Detalhes',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        'Chat',
+                        style: TextStyle(fontSize: 12),
                       ),
                     ),
-                  ],
+                  ),
+                Spacer(),
+                IconButton(
+                  onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                  icon: Icon(Icons.info_outline),
+                  color: Colors.red[600],
+                  iconSize: 24,
                 ),
               ],
             ),
-
           ],
         ),
       ),

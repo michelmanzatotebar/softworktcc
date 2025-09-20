@@ -71,17 +71,85 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
       }
     });
   }
-  void _abrirConversa(Map<String, dynamic> solicitacao) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatPrestadorCliente(
-          solicitacao: solicitacao,
-          cpfUsuarioAtual: widget.cpfCnpj,
-          nomeUsuarioAtual: widget.nomeUsuario,
-          isCliente: false, // Prestador conversando com cliente
-        ),
-      ),
+
+  void _mostrarModalStatus(Map<String, dynamic> solicitacao) {
+    String statusAtual = solicitacao['statusSolicitacao'] ?? '';
+    List<String> opcoes = _controller.getOpcoesStatus(statusAtual);
+    String? statusSelecionado;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateModal) {
+            return AlertDialog(
+              title: Text(
+                'Definir Status',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red[600],
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Status atual: $statusAtual',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  ...opcoes.map((opcao) {
+                    return RadioListTile<String>(
+                      title: Text(opcao),
+                      value: opcao,
+                      groupValue: statusSelecionado,
+                      activeColor: Colors.red[600],
+                      onChanged: (String? value) {
+                        setStateModal(() {
+                          statusSelecionado = value;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: statusSelecionado != null
+                      ? () async {
+                    Navigator.of(context).pop();
+                    await _controller.atualizarStatusSolicitacao(
+                      solicitacao['id'],
+                      statusSelecionado!,
+                    );
+                    _carregarSolicitacoes();
+                  }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[600],
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text('Confirmar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -132,11 +200,10 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: Text(
-                    solicitacao['descricao'] ?? 'N/A',
+                    solicitacao['descricao'] ?? 'Nenhuma descrição fornecida',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[800],
-                      height: 1.4,
                     ),
                   ),
                 ),
@@ -144,13 +211,12 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
             ),
           ),
           actions: [
-            ElevatedButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
-                foregroundColor: Colors.white,
+              child: Text(
+                'Fechar',
+                style: TextStyle(color: Colors.red[600]),
               ),
-              child: Text('Fechar'),
             ),
           ],
         );
@@ -159,76 +225,32 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
   }
 
   Widget _buildDetalheRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFiltros() {
-    return Container(
-      height: 50,
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildBotaoFiltro('Todas'),
-          SizedBox(width: 12),
-          _buildBotaoFiltro('Aceita'),
-          SizedBox(width: 12),
-          _buildBotaoFiltro('Recusada'),
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBotaoFiltro(String filtro) {
-    final isSelected = _filtroSelecionado == filtro;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _filtroSelecionado = filtro;
-          _aplicarFiltro();
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.red[600] : Colors.grey[200],
-          borderRadius: BorderRadius.circular(25),
-          border: Border.all(
-            color: isSelected ? Colors.red[600]! : Colors.grey[300]!,
-            width: 1,
-          ),
-        ),
-        child: Text(
-          filtro,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey[700],
-          ),
-        ),
       ),
     );
   }
@@ -236,7 +258,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(20),
@@ -246,9 +268,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       width: 40,
                       height: 40,
@@ -266,7 +286,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                   Expanded(
                     child: Center(
                       child: Text(
-                        'Minhas Solicitações',
+                        'Solicitações em Andamento',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -278,16 +298,31 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                   SizedBox(width: 40),
                 ],
               ),
-
               SizedBox(height: 30),
-
-              _buildFiltros(),
-
-              SizedBox(height: 20),
-
-              if (!_isLoading) ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildFiltroChip('Todas'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Aceita'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Em andamento'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Concluída'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Finalizado'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Recusada'),
+                    SizedBox(width: 8),
+                    _buildFiltroChip('Cancelada'),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              if (_solicitacoesFiltradas.isNotEmpty)
                 Padding(
-                  padding: EdgeInsets.only(bottom: 16),
+                  padding: EdgeInsets.only(bottom: 12),
                   child: Text(
                     _filtroSelecionado == 'Todas'
                         ? '${_solicitacoesFiltradas.length} solicitações encontradas:'
@@ -295,17 +330,15 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red[700],
+                      color: Colors.red[600],
                     ),
                   ),
                 ),
-              ],
-
               Expanded(
                 child: _isLoading
                     ? Center(
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red[600]!),
                   ),
                 )
                     : _solicitacoesFiltradas.isEmpty
@@ -316,7 +349,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                         : 'Nenhuma solicitação ${_filtroSelecionado.toLowerCase()} encontrada',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.red[400],
+                      color: Colors.red[600],
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -336,75 +369,99 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
     );
   }
 
+  Widget _buildFiltroChip(String filtro) {
+    bool isSelected = _filtroSelecionado == filtro;
+    return FilterChip(
+      label: Text(
+        filtro,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.red[600],
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        setState(() {
+          _filtroSelecionado = filtro;
+          _aplicarFiltro();
+        });
+      },
+      backgroundColor: Colors.white,
+      selectedColor: Colors.red[600],
+      checkmarkColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? Colors.red[600]! : Colors.red[400]!,
+        width: 1.5,
+      ),
+    );
+  }
+
   Widget _buildSolicitacaoCard(Map<String, dynamic> solicitacao, int index) {
     String status = solicitacao['statusSolicitacao'] ?? 'Pendente';
+    bool podeAlterarStatus = _controller.podeAlterarStatus(status);
+    bool chatDisponivel = ['Aceita', 'Em andamento', 'Concluída', 'Cancelada', 'Finalizado'].contains(status) && !['Pendente', 'Recusada'].contains(status);
 
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8),
-      elevation: 3,
-      color: Colors.grey[100],
+      elevation: 2,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: Colors.grey[300]!,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        solicitacao['titulo'] ?? 'Sem título',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _controller.getStatusColor(status),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          status,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    solicitacao['titulo'] ?? 'Serviço',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _controller.getStatusColor(status),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
             ),
-
             SizedBox(height: 12),
-
             Text(
               'Serviço: ${solicitacao['servico']?['nome'] ?? 'N/A'}',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
               ),
             ),
-
             SizedBox(height: 4),
-
+            Text(
+              'Categoria: ${solicitacao['servico']?['categoria'] ?? solicitacao['categoria'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 8),
             Text(
               'Cliente: ${solicitacao['cliente']?['nome'] ?? 'N/A'}',
               style: TextStyle(
@@ -412,9 +469,7 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                 color: Colors.grey[600],
               ),
             ),
-
             SizedBox(height: 4),
-
             Text(
               'Data: ${_controller.formatarData(solicitacao['dataSolicitacao'] ?? '')}',
               style: TextStyle(
@@ -422,75 +477,87 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
                 color: Colors.grey[600],
               ),
             ),
-
-            SizedBox(height: 12),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _controller.formatarValor(solicitacao['servico']?['valor']),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.red[600],
-                  ),
+            if (solicitacao['descricao'] != null && solicitacao['descricao'].isNotEmpty) ...[
+              SizedBox(height: 12),
+              Text(
+                solicitacao['descricao'],
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
                 ),
-                Row(
-                  children: [
-                    if (solicitacao['statusSolicitacao']?.toString().toLowerCase() == 'aceita') ...[
-                      ElevatedButton(
-                        onPressed: () => _abrirConversa(solicitacao),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[600],
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ],
+            SizedBox(height: 16),
+            Text(
+              _controller.formatarValor(solicitacao['servico']?['valor'] ?? solicitacao['valor']),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[600],
+              ),
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                if (podeAlterarStatus)
+                  SizedBox(
+                    width: 110,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () => _mostrarModalStatus(solicitacao),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange[700],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 14,
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Abrir Chat',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                       ),
-                      SizedBox(width: 8),
-                    ],
-
-                    ElevatedButton(
-                      onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                      child: Text(
+                        'Definir Status',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                if (podeAlterarStatus && chatDisponivel) SizedBox(width: 8),
+                if (chatDisponivel)
+                  SizedBox(
+                    width: 80,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatPrestadorCliente(
+                              solicitacao: solicitacao,
+                              cpfUsuarioAtual: widget.cpfCnpj,
+                              nomeUsuarioAtual: widget.nomeUsuario,
+                              isCliente: false,
+                            ),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red[600],
                         foregroundColor: Colors.white,
-                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: 8),
                       ),
                       child: Text(
-                        'Ver Detalhes',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        'Chat',
+                        style: TextStyle(fontSize: 12),
                       ),
                     ),
-                  ],
+                  ),
+                Spacer(),
+                IconButton(
+                  onPressed: () => _mostrarDetalhesSolicitacao(solicitacao),
+                  icon: Icon(Icons.info_outline),
+                  color: Colors.red[600],
+                  iconSize: 24,
                 ),
               ],
             ),

@@ -1,11 +1,9 @@
-import 'dart:ui';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 
 class PrestadorSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
 
   Function(bool)? onLoadingChanged;
   Function(List<Map<String, dynamic>>)? onSolicitacoesChanged;
@@ -40,7 +38,6 @@ class PrestadorSolicitacoesAndamentoController {
           Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
           solicitacao['id'] = key;
 
-          // MUDANÇA: Agora traz TODAS as solicitações do prestador que NÃO são pendentes
           if (solicitacao['prestador'] != null &&
               solicitacao['prestador']['cpfCnpj'].toString() == prestadorCpfCnpj &&
               solicitacao['statusSolicitacao'] != 'Pendente') {
@@ -64,6 +61,23 @@ class PrestadorSolicitacoesAndamentoController {
       print("Erro ao carregar solicitações: $e");
       onError?.call("Erro ao carregar solicitações");
       onSolicitacoesChanged?.call([]);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> atualizarStatusSolicitacao(String solicitacaoId, String novoStatus) async {
+    try {
+      _setLoading(true);
+
+      await _ref.child('solicitacoes/$solicitacaoId').update({
+        'statusSolicitacao': novoStatus,
+      });
+
+      print("Status atualizado para: $novoStatus");
+    } catch (e) {
+      print("Erro ao atualizar status: $e");
+      onError?.call("Erro ao atualizar status da solicitação");
     } finally {
       _setLoading(false);
     }
@@ -100,12 +114,33 @@ class PrestadorSolicitacoesAndamentoController {
         return const Color(0xFFFF9800);
       case 'aceita':
         return const Color(0xFF4CAF50);
+      case 'em andamento':
+        return const Color(0xFF81C784);
       case 'recusada':
         return const Color(0xFFF44336);
-      case 'concluida':
+      case 'cancelada':
+        return const Color(0xFFF44336);
+      case 'concluída':
         return const Color(0xFF2196F3);
+      case 'finalizado':
+        return const Color(0xFFAB47BC);
       default:
         return const Color(0xFF757575);
     }
+  }
+
+  List<String> getOpcoesStatus(String statusAtual) {
+    switch (statusAtual.toLowerCase()) {
+      case 'aceita':
+        return ['Em andamento', 'Cancelada'];
+      case 'em andamento':
+        return ['Cancelada', 'Concluída'];
+      default:
+        return [];
+    }
+  }
+
+  bool podeAlterarStatus(String status) {
+    return ['Aceita', 'Em andamento'].contains(status);
   }
 }

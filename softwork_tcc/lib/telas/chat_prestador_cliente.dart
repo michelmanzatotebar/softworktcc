@@ -6,7 +6,7 @@ class ChatPrestadorCliente extends StatefulWidget {
   final Map<String, dynamic> solicitacao;
   final String cpfUsuarioAtual;
   final String nomeUsuarioAtual;
-  final bool isCliente; // true = cliente, false = prestador
+  final bool isCliente;
 
   const ChatPrestadorCliente({
     Key? key,
@@ -93,11 +93,26 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
 
   void _enviarMensagem() {
     final texto = _textController.text.trim();
-    if (texto.isNotEmpty) {
+    if (texto.isNotEmpty && !_isChatBloqueado()) {
       _controller.enviarMensagem(texto);
       _textController.clear();
-      setState(() {}); // Atualizar contador
+      setState(() {});
     }
+  }
+
+  bool _isChatBloqueado() {
+    String status = widget.solicitacao['statusSolicitacao']?.toString().toLowerCase() ?? '';
+    return status == 'cancelada' || status == 'finalizado';
+  }
+
+  String _getMensagemRodape() {
+    String status = widget.solicitacao['statusSolicitacao']?.toString().toLowerCase() ?? '';
+    if (status == 'cancelada') {
+      return 'Chat finalizado, solicitação cancelada.';
+    } else if (status == 'finalizado') {
+      return 'Serviço finalizado.';
+    }
+    return '';
   }
 
   @override
@@ -159,7 +174,7 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                   fontWeight: FontWeight.w400,
                 ),
               ),
-            if (_outroUsuarioDigitando)
+            if (_outroUsuarioDigitando && !_isChatBloqueado())
               Text(
                 'digitando...',
                 style: TextStyle(
@@ -189,7 +204,6 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
       )
           : Column(
         children: [
-          // Área das mensagens
           Expanded(
             child: _messages.isEmpty
                 ? Center(
@@ -212,7 +226,9 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Envie a primeira mensagem!',
+                    _isChatBloqueado()
+                        ? 'Chat não está mais disponível para envio'
+                        : 'Envie a primeira mensagem!',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -232,8 +248,24 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
             ),
           ),
 
-          // Campo de texto para enviar mensagem
-          _buildInputArea(),
+          if (_getMensagemRodape().isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.orange[50],
+              child: Text(
+                _getMensagemRodape(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.orange[700],
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+          if (!_isChatBloqueado())
+            _buildInputArea(),
         ],
       ),
     );
@@ -274,17 +306,38 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                     borderRadius: BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
-                      bottomLeft: Radius.circular(isMe ? 20 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 20),
+                      bottomLeft: isMe ? Radius.circular(20) : Radius.circular(4),
+                      bottomRight: isMe ? Radius.circular(4) : Radius.circular(20),
                     ),
                   ),
-                  child: Text(
-                    message.text,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isMe ? Colors.white : Colors.black87,
-                      height: 1.3,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        message.text,
+                        style: TextStyle(
+                          color: isMe ? Colors.white : Colors.black87,
+                          fontSize: 15,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            message.timeFormatted,
+                            style: TextStyle(
+                              color: isMe ? Colors.white.withOpacity(0.7) : Colors.grey[500],
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (isMe) ...[
+                            SizedBox(width: 4),
+                            _buildStatusIcon(message.status),
+                          ],
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -292,43 +345,18 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                 SizedBox(width: 8),
                 CircleAvatar(
                   radius: 16,
-                  backgroundColor: Colors.red[100],
+                  backgroundColor: Colors.red[600],
                   child: Text(
                     _controller.usuarioAtual?.initials ?? '?',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red[700],
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ],
             ],
-          ),
-          // Timestamp e status
-          Padding(
-            padding: EdgeInsets.only(
-              top: 4,
-              left: isMe ? 0 : 40,
-              right: isMe ? 40 : 0,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-              children: [
-                Text(
-                  message.timeFormatted,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                if (isMe) ...[
-                  SizedBox(width: 4),
-                  _buildStatusIcon(message.status),
-                ],
-              ],
-            ),
           ),
         ],
       ),
@@ -343,15 +371,15 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
           height: 14,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[400]!),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withOpacity(0.7)),
           ),
         );
       case 'sent':
-        return Icon(Icons.done, size: 14, color: Colors.grey[500]);
+        return Icon(Icons.done, size: 14, color: Colors.white.withOpacity(0.7));
       case 'delivered':
-        return Icon(Icons.done_all, size: 14, color: Colors.grey[500]);
+        return Icon(Icons.done_all, size: 14, color: Colors.white.withOpacity(0.7));
       case 'read':
-        return Icon(Icons.done_all, size: 14, color: Colors.red[600]);
+        return Icon(Icons.done_all, size: 14, color: Colors.blue[300]);
       default:
         return SizedBox.shrink();
     }
@@ -391,7 +419,6 @@ class _ChatPrestadorClienteState extends State<ChatPrestadorCliente> {
                 maxLines: null,
                 maxLength: 500,
                 buildCounter: (context, {required currentLength, required isFocused, maxLength}) {
-                  // Retorna null para esconder o contador visual
                   return null;
                 },
                 textCapitalization: TextCapitalization.sentences,

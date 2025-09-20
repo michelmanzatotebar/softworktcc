@@ -46,16 +46,7 @@ class TelaPrincipalPrestadorController {
   String formatarDataSimples(String dataISO) {
     try {
       DateTime data = DateTime.parse(dataISO);
-
-      List<String> meses = [
-        'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-        'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-      ];
-
-      String dia = data.day.toString().padLeft(2, '0');
-      String mes = meses[data.month - 1];
-
-      return '$dia $mes';
+      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
     } catch (e) {
       return 'Data inválida';
     }
