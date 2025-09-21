@@ -6,7 +6,9 @@ import 'tela_login.dart';
 import 'tela_gerenciar_servicos_prestador.dart';
 import 'tela_detalhes_solicitacao_prestador.dart';
 import 'tela_prestador_solicitacoes_andamento.dart';
+import 'tela_notificacoes_prestador.dart';
 import '../controllers/tela_principal_prestador_controller.dart';
+import '../controllers/prestador_notificacoes_controller.dart';
 
 class TelaPrincipalPrestador extends StatefulWidget {
   final String nomeUsuario;
@@ -24,20 +26,24 @@ class TelaPrincipalPrestador extends StatefulWidget {
 
 class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
   final TelaPrincipalPrestadorController _controller = TelaPrincipalPrestadorController();
+  final PrestadorNotificacoesController _notificacoesController = PrestadorNotificacoesController();
 
   bool _isLoading = false;
   List<Map<String, dynamic>> _solicitacoesPendentes = [];
+  int _contadorNotificacoes = 0;
 
   @override
   void initState() {
     super.initState();
     _configurarCallbacks();
+    _configurarNotificacoes();
     _carregarSolicitacoes();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _notificacoesController.dispose();
     super.dispose();
   }
 
@@ -62,6 +68,37 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
         );
       },
     );
+  }
+
+  void _configurarNotificacoes() {
+    _notificacoesController.setCallbacks(
+      novaNotificacaoCallback: (String mensagem) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(child: Text(mensagem)),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      contadorCallback: (int contador) {
+        setState(() {
+          _contadorNotificacoes = contador;
+        });
+      },
+      errorCallback: (String error) {
+        print("Erro nas notificações: $error");
+      },
+    );
+
+    _notificacoesController.iniciarListenerNotificacoes(widget.cpfCnpj);
   }
 
   void _carregarSolicitacoes() {
@@ -446,6 +483,56 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                         Icons.person,
                         color: Colors.white,
                         size: 28,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TelaNotificacoesPrestador(
+                            nomeUsuario: widget.nomeUsuario,
+                            cpfCnpj: widget.cpfCnpj,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[100],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.red[300]!, width: 1),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.notifications,
+                            color: Colors.red[600],
+                            size: 18,
+                          ),
+                          if (_contadorNotificacoes > 0) ...[
+                            SizedBox(width: 6),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$_contadorNotificacoes',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
