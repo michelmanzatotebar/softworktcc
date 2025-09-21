@@ -4,6 +4,7 @@ import '../controllers/login_controller.dart';
 import 'tela_cadastro.dart';
 import 'tela_principal_cliente.dart';
 import 'tela_principal_prestador.dart';
+import 'tela_esqueci_minha_senha.dart';
 
 class TelaLogin extends StatefulWidget {
   @override
@@ -43,33 +44,37 @@ class _TelaLoginState extends State<TelaLogin> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => TelaCadastro(
-              email: email,
-              uid: uid,
-              nome: nome,
-            ),
+            builder: (context) =>
+                TelaCadastro(
+                  email: email,
+                  uid: uid,
+                  nome: nome,
+                ),
           ),
         );
       },
-      mainCallback: (Map<dynamic, dynamic> dadosUsuario, String cpfCnpj, bool isPrestador) {
+      mainCallback: (Map<dynamic, dynamic> dadosUsuario, String cpfCnpj,
+          bool isPrestador) {
         if (isPrestador) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => TelaPrincipalPrestador(
-                nomeUsuario: dadosUsuario['nome'],
-                cpfCnpj: cpfCnpj,
-              ),
+              builder: (context) =>
+                  TelaPrincipalPrestador(
+                    nomeUsuario: dadosUsuario['nome'],
+                    cpfCnpj: cpfCnpj,
+                  ),
             ),
           );
         } else {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => TelaPrincipalCliente(
-                nomeUsuario: dadosUsuario['nome'],
-                cpfCnpj: cpfCnpj,
-              ),
+              builder: (context) =>
+                  TelaPrincipalCliente(
+                    nomeUsuario: dadosUsuario['nome'],
+                    cpfCnpj: cpfCnpj,
+                  ),
             ),
           );
         }
@@ -115,11 +120,14 @@ class _TelaLoginState extends State<TelaLogin> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => TelaCadastro(
-          email: _emailController.text.trim().isEmpty ? '' : _emailController.text.trim(),
-          uid: '',
-          nome: '',
-        ),
+        builder: (context) =>
+            TelaCadastro(
+              email: _emailController.text
+                  .trim()
+                  .isEmpty ? '' : _emailController.text.trim(),
+              uid: '',
+              nome: '',
+            ),
       ),
     );
   }
@@ -208,23 +216,28 @@ class _TelaLoginState extends State<TelaLogin> {
                       hintText: 'Digite seu email',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                        borderSide: BorderSide(color: Colors.grey[300]!,
+                            width: 1),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                        borderSide: BorderSide(color: Colors.grey[300]!,
+                            width: 1),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                        borderSide: BorderSide(color: Colors.red, width: 2),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Colors.red, width: 1),
                       ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
                     ),
                   ),
 
@@ -241,6 +254,42 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                     ),
                   ),
+
+                  SizedBox(height: 4),
+
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TelaEsqueciMinhaSenha(),
+                          ),
+                        );
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          text: 'Esqueceu sua senha? ',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'clique aqui',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
                   SizedBox(height: 8),
                   TextFormField(
                     controller: _senhaController,
@@ -248,24 +297,15 @@ class _TelaLoginState extends State<TelaLogin> {
                     validator: _validarSenha,
                     decoration: InputDecoration(
                       hintText: 'Digite sua senha',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          color: Colors.grey[600],
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                        borderSide: BorderSide(color: Colors.grey[300]!,
+                            width: 1),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+                        borderSide: BorderSide(color: Colors.grey[300]!,
+                            width: 1),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -275,9 +315,24 @@ class _TelaLoginState extends State<TelaLogin> {
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Colors.red, width: 1),
                       ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.red, width: 2),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility : Icons
+                              .visibility_off,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
+                      ),
                     ),
                   ),
 
@@ -289,7 +344,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.red.withOpacity(0.3),
+                          color: Colors.blue.withOpacity(0.3),
                           spreadRadius: 2,
                           blurRadius: 5,
                           offset: Offset(0, 3),
@@ -297,7 +352,9 @@ class _TelaLoginState extends State<TelaLogin> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: _loginController.isLoading ? null : _fazerLogin,
+                      onPressed: _loginController.isLoading
+                          ? null
+                          : _fazerLogin,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
@@ -308,18 +365,19 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                       child: _loginController.isLoading
                           ? SizedBox(
-                        width: 24,
-                        height: 24,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white),
                         ),
                       )
                           : Text(
                         'Login',
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -330,7 +388,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   Center(
                     child: RichText(
                       text: TextSpan(
-                        text: 'Não possui conta? ',
+                        text: 'Não tem uma conta? ',
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -338,7 +396,9 @@ class _TelaLoginState extends State<TelaLogin> {
                         children: [
                           WidgetSpan(
                             child: GestureDetector(
-                              onTap: _loginController.isLoading ? null : _irParaTelaCadastro,
+                              onTap: _loginController.isLoading
+                                  ? null
+                                  : _irParaTelaCadastro,
                               child: Text(
                                 'Criar conta',
                                 style: TextStyle(
@@ -389,7 +449,9 @@ class _TelaLoginState extends State<TelaLogin> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: _loginController.isLoading ? null : _loginController.loginComGoogle,
+                      onPressed: _loginController.isLoading
+                          ? null
+                          : _loginController.loginComGoogle,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
@@ -400,24 +462,31 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                       child: _loginController.isLoading
                           ? SizedBox(
-                        width: 24,
-                        height: 24,
+                        width: 20,
+                        height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white),
                         ),
                       )
-                          : Text(
-                        'Entrar com o Google',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                          : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(width: 8),
+                          Text(
+                            'Entrar com Google',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
 
-                  SizedBox(height: 60),
+                  SizedBox(height: 40),
                 ],
               ),
             ),
