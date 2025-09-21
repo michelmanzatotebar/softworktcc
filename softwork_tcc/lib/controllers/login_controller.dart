@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_database/firebase_database.dart';
+import '../controllers/notificacao_controller.dart';
 
 class LoginController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -258,7 +259,6 @@ class LoginController {
           if (dados['email'] == user.email) {
             print("Email encontrado! Verificando completude...");
 
-
             if (dados['nome'] != null &&
                 dados['logradouro'] != null &&
                 dados['cep'] != null &&
@@ -267,13 +267,15 @@ class LoginController {
               cpfCnpjUsuario = entry.key;
               dadosUsuario = dados;
               break;
-            } else {
             }
           }
         }
 
         if (cadastroCompleto && cpfCnpjUsuario != null && dadosUsuario != null) {
           print("Redirecionando para tela principal...");
+
+          // NOVO: Salvar token FCM do usuário
+          await NotificacaoController.salvarTokenUsuario(cpfCnpjUsuario);
 
           bool isPrestador = dadosUsuario['tipoConta'] == false;
 

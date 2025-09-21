@@ -38,7 +38,9 @@ dependencies:
   google_fonts: ^6.1.0
   mask_text_input_formatter: ^2.9.0
   shared_preferences: ^2.2.2
-
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^16.3.2
+  http: ^1.1.0
 
 
 
