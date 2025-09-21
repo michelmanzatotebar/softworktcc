@@ -83,6 +83,15 @@ class PrestadorSolicitacoesAndamentoController {
     }
   }
 
+  String formatarStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'concluída':
+        return 'Concluído\npelo prestador';
+      default:
+        return status;
+    }
+  }
+
   String formatarData(String dataISO) {
     try {
       DateTime data = DateTime.parse(dataISO);
