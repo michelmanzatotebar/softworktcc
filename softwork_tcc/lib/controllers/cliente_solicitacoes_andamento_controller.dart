@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class ClienteSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   bool _isLoading = false;
+  StreamSubscription? _solicitacoesSubscription;
 
   Function(bool)? onLoadingChanged;
   Function(List<Map<String, dynamic>>)? onSolicitacoesChanged;
@@ -25,43 +27,71 @@ class ClienteSolicitacoesAndamentoController {
   }
 
   Future<void> carregarSolicitacoesCliente(String clienteCpfCnpj) async {
-    _setLoading(true);
-
     try {
-      final snapshot = await _ref.child('solicitacoes').get();
+      _setLoading(true);
 
-      if (snapshot.exists) {
-        Map<dynamic, dynamic> solicitacoesData = snapshot.value as Map<dynamic, dynamic>;
-        List<Map<String, dynamic>> solicitacoesDoCliente = [];
+      await _cancelarListener();
 
-        solicitacoesData.forEach((key, value) {
-          Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
-          solicitacao['id'] = key;
+      _solicitacoesSubscription = _ref.child('solicitacoes').onValue.listen(
+            (event) {
+          try {
+            if (event.snapshot.exists) {
+              Map<dynamic, dynamic> solicitacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+              List<Map<String, dynamic>> solicitacoesDoCliente = [];
 
-          if (solicitacao['cliente'] != null &&
-              solicitacao['cliente']['cpfCnpj'].toString() == clienteCpfCnpj) {
-            solicitacoesDoCliente.add(solicitacao);
+              solicitacoesData.forEach((key, value) {
+                Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
+                solicitacao['id'] = key;
+
+                if (solicitacao['cliente'] != null &&
+                    solicitacao['cliente']['cpfCnpj'].toString() == clienteCpfCnpj) {
+                  solicitacoesDoCliente.add(solicitacao);
+                }
+              });
+
+              solicitacoesDoCliente.sort((a, b) {
+                DateTime dataA = DateTime.parse(a['dataSolicitacao']);
+                DateTime dataB = DateTime.parse(b['dataSolicitacao']);
+                return dataB.compareTo(dataA);
+              });
+
+              onSolicitacoesChanged?.call(solicitacoesDoCliente);
+              print("Solicitações do cliente atualizadas em tempo real: ${solicitacoesDoCliente.length}");
+            } else {
+              onSolicitacoesChanged?.call([]);
+              print("Nenhuma solicitação encontrada");
+            }
+
+            if (_isLoading) {
+              _setLoading(false);
+            }
+          } catch (e) {
+            print("Erro ao processar solicitações em tempo real: $e");
+            if (_isLoading) {
+              _setLoading(false);
+            }
+            onError?.call("Erro ao carregar solicitações");
           }
-        });
-
-        solicitacoesDoCliente.sort((a, b) {
-          DateTime dataA = DateTime.parse(a['dataSolicitacao']);
-          DateTime dataB = DateTime.parse(b['dataSolicitacao']);
-          return dataB.compareTo(dataA);
-        });
-
-        onSolicitacoesChanged?.call(solicitacoesDoCliente);
-        print("Solicitações do cliente carregadas: ${solicitacoesDoCliente.length}");
-      } else {
-        onSolicitacoesChanged?.call([]);
-        print("Nenhuma solicitação encontrada");
-      }
+        },
+        onError: (error) {
+          print("Erro no listener de solicitações: $error");
+          if (_isLoading) {
+            _setLoading(false);
+          }
+          onError?.call("Erro ao escutar solicitações");
+        },
+      );
     } catch (e) {
-      print("Erro ao carregar solicitações: $e");
-      onError?.call("Erro ao carregar solicitações");
-      onSolicitacoesChanged?.call([]);
-    } finally {
+      print("Erro ao inicializar listener de solicitações: $e");
       _setLoading(false);
+      onError?.call("Erro ao carregar solicitações");
+    }
+  }
+
+  Future<void> _cancelarListener() async {
+    if (_solicitacoesSubscription != null) {
+      await _solicitacoesSubscription!.cancel();
+      _solicitacoesSubscription = null;
     }
   }
 
@@ -101,8 +131,20 @@ class ClienteSolicitacoesAndamentoController {
 
   String formatarStatus(String status) {
     switch (status.toLowerCase()) {
+      case 'pendente':
+        return 'Pendente';
+      case 'aceita':
+        return 'Aceita';
+      case 'em andamento':
+        return 'Em Andamento';
+      case 'recusada':
+        return 'Recusada';
+      case 'cancelada':
+        return 'Cancelada';
       case 'concluída':
         return 'Concluído\npelo prestador';
+      case 'finalizado':
+        return 'Finalizado';
       default:
         return status;
     }
@@ -160,5 +202,9 @@ class ClienteSolicitacoesAndamentoController {
 
   bool podeDefinirConclusao(String status) {
     return status.toLowerCase() == 'concluída';
+  }
+
+  void dispose() {
+    _cancelarListener();
   }
 }

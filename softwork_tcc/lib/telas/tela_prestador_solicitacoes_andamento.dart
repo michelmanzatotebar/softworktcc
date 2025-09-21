@@ -31,6 +31,12 @@ class _TelaPrestadorSolicitacoesAndamentoState extends State<TelaPrestadorSolici
     _carregarSolicitacoes();
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _configurarCallbacks() {
     _controller.setCallbacks(
       loadingCallback: (bool isLoading) {

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 class PrestadorSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
   bool _isLoading = false;
+  StreamSubscription? _solicitacoesSubscription;
 
   Function(bool)? onLoadingChanged;
   Function(List<Map<String, dynamic>>)? onSolicitacoesChanged;
@@ -25,44 +27,72 @@ class PrestadorSolicitacoesAndamentoController {
   }
 
   Future<void> carregarSolicitacoesPrestador(String prestadorCpfCnpj) async {
-    _setLoading(true);
-
     try {
-      final snapshot = await _ref.child('solicitacoes').get();
+      _setLoading(true);
 
-      if (snapshot.exists) {
-        Map<dynamic, dynamic> solicitacoesData = snapshot.value as Map<dynamic, dynamic>;
-        List<Map<String, dynamic>> solicitacoesDoPrestador = [];
+      await _cancelarListener();
 
-        solicitacoesData.forEach((key, value) {
-          Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
-          solicitacao['id'] = key;
+      _solicitacoesSubscription = _ref.child('solicitacoes').onValue.listen(
+            (event) {
+          try {
+            if (event.snapshot.exists) {
+              Map<dynamic, dynamic> solicitacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+              List<Map<String, dynamic>> solicitacoesDoPrestador = [];
 
-          if (solicitacao['prestador'] != null &&
-              solicitacao['prestador']['cpfCnpj'].toString() == prestadorCpfCnpj &&
-              solicitacao['statusSolicitacao'] != 'Pendente') {
-            solicitacoesDoPrestador.add(solicitacao);
+              solicitacoesData.forEach((key, value) {
+                Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
+                solicitacao['id'] = key;
+
+                if (solicitacao['prestador'] != null &&
+                    solicitacao['prestador']['cpfCnpj'].toString() == prestadorCpfCnpj &&
+                    solicitacao['statusSolicitacao'] != 'Pendente') {
+                  solicitacoesDoPrestador.add(solicitacao);
+                }
+              });
+
+              solicitacoesDoPrestador.sort((a, b) {
+                DateTime dataA = DateTime.parse(a['dataSolicitacao']);
+                DateTime dataB = DateTime.parse(b['dataSolicitacao']);
+                return dataB.compareTo(dataA);
+              });
+
+              onSolicitacoesChanged?.call(solicitacoesDoPrestador);
+              print("Solicitações do prestador atualizadas em tempo real: ${solicitacoesDoPrestador.length}");
+            } else {
+              onSolicitacoesChanged?.call([]);
+              print("Nenhuma solicitação encontrada");
+            }
+
+            if (_isLoading) {
+              _setLoading(false);
+            }
+          } catch (e) {
+            print("Erro ao processar solicitações em tempo real: $e");
+            if (_isLoading) {
+              _setLoading(false);
+            }
+            onError?.call("Erro ao carregar solicitações");
           }
-        });
-
-        solicitacoesDoPrestador.sort((a, b) {
-          DateTime dataA = DateTime.parse(a['dataSolicitacao']);
-          DateTime dataB = DateTime.parse(b['dataSolicitacao']);
-          return dataB.compareTo(dataA);
-        });
-
-        onSolicitacoesChanged?.call(solicitacoesDoPrestador);
-        print("Solicitações do prestador carregadas: ${solicitacoesDoPrestador.length}");
-      } else {
-        onSolicitacoesChanged?.call([]);
-        print("Nenhuma solicitação encontrada");
-      }
+        },
+        onError: (error) {
+          print("Erro no listener de solicitações: $error");
+          if (_isLoading) {
+            _setLoading(false);
+          }
+          onError?.call("Erro ao escutar solicitações");
+        },
+      );
     } catch (e) {
-      print("Erro ao carregar solicitações: $e");
-      onError?.call("Erro ao carregar solicitações");
-      onSolicitacoesChanged?.call([]);
-    } finally {
+      print("Erro ao inicializar listener de solicitações: $e");
       _setLoading(false);
+      onError?.call("Erro ao carregar solicitações");
+    }
+  }
+
+  Future<void> _cancelarListener() async {
+    if (_solicitacoesSubscription != null) {
+      await _solicitacoesSubscription!.cancel();
+      _solicitacoesSubscription = null;
     }
   }
 
@@ -151,5 +181,9 @@ class PrestadorSolicitacoesAndamentoController {
 
   bool podeAlterarStatus(String status) {
     return ['Aceita', 'Em andamento'].contains(status);
+  }
+
+  void dispose() {
+    _cancelarListener();
   }
 }
