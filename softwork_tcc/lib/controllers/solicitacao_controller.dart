@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import '../controllers/notificacao_controller.dart';
 
 class SolicitacaoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
@@ -37,6 +38,15 @@ class SolicitacaoController {
       await _ref.child('solicitacoes/$solicitacaoId').set(solicitacao);
 
       print("Solicitação criada com sucesso");
+
+      // NOVO: Notificar o prestador sobre a nova solicitação
+      await NotificacaoController.notificarNovaSolicitacao(
+        prestadorCpfCnpj: prestadorCpfCnpj,
+        tituloSolicitacao: titulo,
+        nomeCliente: clienteNome,
+        nomeServico: servico['nome'] ?? 'Serviço',
+      );
+
       return solicitacao;
 
     } catch (e) {
@@ -116,10 +126,7 @@ class SolicitacaoController {
     }
   }
 
-  Future<void> atualizarStatusSolicitacao({
-    required String solicitacaoId,
-    required String novoStatus,
-  }) async {
+  Future<void> atualizarStatusSolicitacao(String solicitacaoId, String novoStatus) async {
     try {
       if (!['Pendente', 'Aceita', 'Em andamento', 'Recusada', 'Cancelada', 'Concluída', 'Finalizado'].contains(novoStatus)) {
         throw Exception("Status inválido. Use: Pendente, Aceita, Em andamento, Recusada, Cancelada, Concluída ou Finalizado");

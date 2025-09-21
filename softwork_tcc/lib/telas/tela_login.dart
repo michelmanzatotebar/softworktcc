@@ -309,7 +309,7 @@ class _TelaLoginState extends State<TelaLogin> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.blue, width: 2),
+                        borderSide: BorderSide(color: Colors.red, width: 2),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -344,7 +344,7 @@ class _TelaLoginState extends State<TelaLogin> {
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withOpacity(0.3),
+                          color: Colors.red.withOpacity(0.3),
                           spreadRadius: 2,
                           blurRadius: 5,
                           offset: Offset(0, 3),

@@ -1,8 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'solicitacao_controller.dart';
 
 class TelaPrincipalPrestadorController {
   final SolicitacaoController _solicitacaoController = SolicitacaoController();
+  final DatabaseReference _ref = FirebaseDatabase.instance.ref();
+
+  StreamSubscription? _solicitacoesSubscription;
 
   bool isLoading = false;
   List<Map<String, dynamic>> solicitacoesPendentes = [];
@@ -26,20 +31,86 @@ class TelaPrincipalPrestadorController {
       isLoading = true;
       onLoadingChanged?.call(true);
 
-      List<Map<String, dynamic>> todasSolicitacoes = await _solicitacaoController.carregarSolicitacoesPorPrestador(prestadorCpfCnpj);
+      await _cancelarListener();
 
-      solicitacoesPendentes = todasSolicitacoes.where((solicitacao) =>
-      solicitacao['statusSolicitacao'] == 'Pendente'
-      ).toList();
+      _solicitacoesSubscription = _ref.child('solicitacoes').onValue.listen(
+            (event) {
+          try {
+            if (event.snapshot.exists) {
+              Map<dynamic, dynamic> solicitacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+              List<Map<String, dynamic>> todasSolicitacoes = [];
 
-      onSolicitacoesLoaded?.call(solicitacoesPendentes);
+              solicitacoesData.forEach((key, value) {
+                Map<String, dynamic> solicitacao = Map<String, dynamic>.from(value);
+                solicitacao['id'] = key;
+
+                // Usar a estrutura correta: solicitacao['prestador']['cpfCnpj']
+                if (solicitacao['prestador'] != null &&
+                    solicitacao['prestador']['cpfCnpj'].toString() == prestadorCpfCnpj) {
+                  todasSolicitacoes.add(solicitacao);
+                }
+              });
+
+              solicitacoesPendentes = todasSolicitacoes.where((solicitacao) =>
+              solicitacao['statusSolicitacao'] == 'Pendente'
+              ).toList();
+
+              solicitacoesPendentes.sort((a, b) {
+                try {
+                  DateTime dataA = DateTime.parse(a['dataSolicitacao']);
+                  DateTime dataB = DateTime.parse(b['dataSolicitacao']);
+                  return dataB.compareTo(dataA);
+                } catch (e) {
+                  return 0;
+                }
+              });
+
+              onSolicitacoesLoaded?.call(solicitacoesPendentes);
+
+              print("Solicitações atualizadas em tempo real: ${solicitacoesPendentes.length}");
+
+            } else {
+              solicitacoesPendentes = [];
+              onSolicitacoesLoaded?.call(solicitacoesPendentes);
+              print("Nenhuma solicitação encontrada no banco");
+            }
+
+            if (isLoading) {
+              isLoading = false;
+              onLoadingChanged?.call(false);
+            }
+
+          } catch (e) {
+            print("Erro ao processar solicitações em tempo real: $e");
+            if (isLoading) {
+              isLoading = false;
+              onLoadingChanged?.call(false);
+            }
+            onError?.call("Erro ao carregar solicitações");
+          }
+        },
+        onError: (error) {
+          print("Erro no listener de solicitações: $error");
+          if (isLoading) {
+            isLoading = false;
+            onLoadingChanged?.call(false);
+          }
+          onError?.call("Erro ao escutar solicitações");
+        },
+      );
 
     } catch (e) {
-      print("Erro ao carregar solicitações do prestador: $e");
-      onError?.call("Erro ao carregar solicitações");
-    } finally {
+      print("Erro ao inicializar listener de solicitações: $e");
       isLoading = false;
       onLoadingChanged?.call(false);
+      onError?.call("Erro ao carregar solicitações");
+    }
+  }
+
+  Future<void> _cancelarListener() async {
+    if (_solicitacoesSubscription != null) {
+      await _solicitacoesSubscription!.cancel();
+      _solicitacoesSubscription = null;
     }
   }
 
@@ -68,5 +139,9 @@ class TelaPrincipalPrestadorController {
     }
 
     return '${descricao.substring(0, maxLength)}...';
+  }
+
+  void dispose() {
+    _cancelarListener();
   }
 }
