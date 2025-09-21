@@ -45,8 +45,9 @@ class TelaPrincipalPrestadorController {
 
   String formatarDataSimples(String dataISO) {
     try {
-      DateTime data = DateTime.parse(dataISO);
-      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
+      DateTime dataUtc = DateTime.parse(dataISO);
+      DateTime dataLocal = dataUtc.toLocal();
+      return '${dataLocal.day.toString().padLeft(2, '0')}/${dataLocal.month.toString().padLeft(2, '0')}/${dataLocal.year}';
     } catch (e) {
       return 'Data inválida';
     }

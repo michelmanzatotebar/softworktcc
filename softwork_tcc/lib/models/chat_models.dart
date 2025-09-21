@@ -1,5 +1,3 @@
-// lib/models/chat_models.dart
-
 class ChatUser {
   final String id;
   final String firstName;
@@ -37,7 +35,7 @@ class ChatMessage {
   final String authorId;
   final DateTime createdAt;
   final String type;
-  final String status; // 'sending', 'sent', 'delivered', 'read'
+  final String status;
 
   ChatMessage({
     required this.id,
@@ -53,14 +51,14 @@ class ChatMessage {
   String get timeFormatted {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(createdAt.year, createdAt.month, createdAt.day);
+
+    final localDateTime = createdAt.toLocal();
+    final messageDate = DateTime(localDateTime.year, localDateTime.month, localDateTime.day);
 
     if (messageDate == today) {
-      // Hoje - mostrar apenas hora
-      return '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+      return '${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
     } else {
-      // Outro dia - mostrar data e hora
-      return '${createdAt.day}/${createdAt.month} ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}';
+      return '${localDateTime.day}/${localDateTime.month} ${localDateTime.hour.toString().padLeft(2, '0')}:${localDateTime.minute.toString().padLeft(2, '0')}';
     }
   }
 
@@ -69,7 +67,7 @@ class ChatMessage {
       'id': id,
       'text': text,
       'authorId': authorId,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': createdAt.toUtc().millisecondsSinceEpoch,
       'type': type,
       'status': status,
     };
@@ -80,13 +78,12 @@ class ChatMessage {
       id: map['id']?.toString() ?? '',
       text: map['text']?.toString() ?? '',
       authorId: map['authorId']?.toString() ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0, isUtc: true),
       type: map['type']?.toString() ?? 'text',
       status: map['status']?.toString() ?? 'sent',
     );
   }
 
-  // Método para atualizar status
   ChatMessage copyWith({String? status}) {
     return ChatMessage(
       id: id,
@@ -121,9 +118,9 @@ class ChatRoom {
       'id': id,
       'name': name,
       'userIds': userIds,
-      'createdAt': createdAt.millisecondsSinceEpoch,
+      'createdAt': createdAt.toUtc().millisecondsSinceEpoch,
       'lastMessage': lastMessage,
-      'lastMessageTime': lastMessageTime?.millisecondsSinceEpoch,
+      'lastMessageTime': lastMessageTime?.toUtc().millisecondsSinceEpoch,
     };
   }
 
@@ -132,10 +129,10 @@ class ChatRoom {
       id: roomId,
       name: map['name']?.toString() ?? '',
       userIds: List<String>.from(map['userIds'] ?? []),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] ?? 0, isUtc: true),
       lastMessage: map['lastMessage']?.toString(),
       lastMessageTime: map['lastMessageTime'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastMessageTime'])
+          ? DateTime.fromMillisecondsSinceEpoch(map['lastMessageTime'], isUtc: true)
           : null,
     );
   }

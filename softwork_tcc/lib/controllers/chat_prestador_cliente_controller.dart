@@ -237,13 +237,16 @@ class ChatPrestadorClienteController {
     if (_roomId == null || texto.trim().isEmpty || _usuarioAtual == null) return;
 
     try {
-      final messageId = _ref.child('chat/messages/$_roomId').push().key!;
+      final messageId = _ref.child('chat/messages/$_roomId').push().key;
+      if (messageId == null) return;
+
+      final agora = DateTime.now().toUtc();
 
       final message = ChatMessage(
         id: messageId,
         text: texto.trim(),
         authorId: _usuarioAtual!.id,
-        createdAt: DateTime.now(),
+        createdAt: agora,
         status: 'sending',
       );
 
@@ -257,7 +260,7 @@ class ChatPrestadorClienteController {
 
       await _ref.child('chat/rooms/$_roomId').update({
         'lastMessage': texto.trim(),
-        'lastMessageTime': DateTime.now().millisecondsSinceEpoch,
+        'lastMessageTime': agora.millisecondsSinceEpoch,
       });
 
       print("Mensagem enviada: $texto");

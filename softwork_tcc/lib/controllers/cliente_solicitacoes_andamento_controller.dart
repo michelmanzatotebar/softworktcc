@@ -65,6 +65,21 @@ class ClienteSolicitacoesAndamentoController {
     }
   }
 
+  Future<void> cancelarSolicitacao(String solicitacaoId) async {
+    try {
+      _setLoading(true);
+
+      await _ref.child('solicitacoes/$solicitacaoId').remove();
+
+      print("Solicitação excluída pelo cliente");
+    } catch (e) {
+      print("Erro ao cancelar solicitação: $e");
+      onError?.call("Erro ao cancelar solicitação");
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> definirConclusaoSolicitacao(String solicitacaoId, bool confirmado) async {
     try {
       _setLoading(true);
@@ -81,6 +96,15 @@ class ClienteSolicitacoesAndamentoController {
       onError?.call("Erro ao definir conclusão da solicitação");
     } finally {
       _setLoading(false);
+    }
+  }
+
+  String formatarStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'concluída':
+        return 'Concluído\npelo prestador';
+      default:
+        return status;
     }
   }
 
@@ -128,6 +152,10 @@ class ClienteSolicitacoesAndamentoController {
       default:
         return const Color(0xFF757575);
     }
+  }
+
+  bool podeCancelar(String status) {
+    return status.toLowerCase() == 'pendente';
   }
 
   bool podeDefinirConclusao(String status) {
