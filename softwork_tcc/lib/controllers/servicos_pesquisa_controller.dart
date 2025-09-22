@@ -20,12 +20,31 @@ class ServicosPesquisaController {
     onError = errorCallback;
   }
 
+  Future<void> carregarUltimosServicos() async {
+    print("Carregando os 10 últimos serviços cadastrados");
+
+    onLoadingChanged?.call(true);
+
+    try {
+      List<Map<String, dynamic>> servicos = await _buscarUltimosServicosNoFirebase();
+
+      onLoadingChanged?.call(false);
+      onResultsChanged?.call(servicos);
+
+    } catch (e) {
+      onLoadingChanged?.call(false);
+      onResultsChanged?.call([]);
+      onError?.call("Erro ao carregar serviços");
+
+      print("Erro ao carregar últimos serviços: $e");
+    }
+  }
+
   Future<void> pesquisarServicos(String query, {String? categoriaFiltro}) async {
     print("Pesquisando serviços: $query | Categoria: $categoriaFiltro");
 
     if (query.trim().isEmpty && categoriaFiltro == null) {
-      onLoadingChanged?.call(false);
-      onResultsChanged?.call([]);
+      await carregarUltimosServicos();
       return;
     }
 
@@ -54,6 +73,45 @@ class ServicosPesquisaController {
       print("Erro ao carregar categorias: $e");
       onError?.call("Erro ao carregar categorias");
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _buscarUltimosServicosNoFirebase() async {
+    final snapshot = await _ref.child('servicos').get();
+
+    if (!snapshot.exists) {
+      print("Nenhum serviço encontrado no banco de dados");
+      return [];
+    }
+
+    Map<dynamic, dynamic> servicosData = snapshot.value as Map<dynamic, dynamic>;
+    List<Map<String, dynamic>> todosServicos = [];
+
+    servicosData.forEach((servicoId, servicoData) {
+      Map<String, dynamic> servico = Map<String, dynamic>.from(servicoData);
+      servico['id'] = servicoId;
+
+      if (servico['valor'] != null) {
+        servico['valorFormatado'] = 'R\$ ${servico['valor'].toStringAsFixed(2).replaceAll('.', ',')}';
+      }
+
+      if (servico['prestador'] != null) {
+        servico['prestadorNome'] = servico['prestador']['nome'] ?? '';
+        servico['prestadorCpfCnpj'] = servico['prestador']['cpfCnpj'] ?? '';
+      }
+
+      todosServicos.add(servico);
+    });
+
+    todosServicos.sort((a, b) {
+      String timestampA = a['id']?.toString() ?? '';
+      String timestampB = b['id']?.toString() ?? '';
+      return timestampB.compareTo(timestampA);
+    });
+
+    List<Map<String, dynamic>> ultimosServicos = todosServicos.take(10).toList();
+
+    print("Últimos 10 serviços carregados: ${ultimosServicos.length}");
+    return ultimosServicos;
   }
 
   Future<List<Map<String, dynamic>>> _buscarServicosNoFirebase(String query, String? categoriaFiltro) async {
@@ -134,7 +192,6 @@ class ServicosPesquisaController {
       if (snapshot.exists) {
         Map<String, dynamic> servico = Map<String, dynamic>.from(snapshot.value as Map);
         servico['id'] = servicoId;
-
 
         if (servico['valor'] != null) {
           servico['valorFormatado'] = 'R\$ ${servico['valor'].toStringAsFixed(2).replaceAll('.', ',')}';

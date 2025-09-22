@@ -168,11 +168,11 @@ class NotificacoesPrestadorController {
   Color getCorTipo(String? tipo) {
     switch (tipo?.toLowerCase()) {
       case 'nova_solicitacao':
-        return Colors.blue;
+        return Colors.orange;
       case 'solicitacao_aceita':
         return Colors.green;
       case 'solicitacao_concluida':
-        return Colors.orange;
+        return Colors.blue;
       default:
         return Colors.grey;
     }
