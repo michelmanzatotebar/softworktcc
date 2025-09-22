@@ -67,8 +67,8 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
     final agora = DateTime.now();
 
     final diasSemana = [
-      'Segunda', 'Terça', 'Quarta', 'Quinta',
-      'Sexta', 'Sábado', 'Domingo'
+      'Seg', 'Ter', 'Qua', 'Qui',
+      'Sex', 'Sáb', 'Dom'
     ];
 
     final meses = [
@@ -81,11 +81,7 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
     final mes = meses[agora.month - 1];
     final ano = agora.year;
 
-    if (agora.weekday == 6 || agora.weekday == 7) {
-      return '$diaSemana, $dia de $mes $ano';
-    } else {
-      return '$diaSemana Feira, $dia de $mes $ano';
-    }
+    return '$diaSemana, $dia $mes $ano';
   }
 
   void _mostrarMenuPerfil() {

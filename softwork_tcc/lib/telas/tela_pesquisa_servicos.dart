@@ -36,6 +36,7 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
     super.initState();
     _configurarCallbacks();
     _carregarCategorias();
+    _carregarUltimosServicos();
   }
 
   void _configurarCallbacks() {
@@ -70,6 +71,10 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
     _servicosPesquisaController.carregarCategorias();
   }
 
+  void _carregarUltimosServicos() {
+    _servicosPesquisaController.carregarUltimosServicos();
+  }
+
   void _pesquisarServico(String query) {
     _servicosPesquisaController.pesquisarServicos(query, categoriaFiltro: _categoriaSelecionada);
   }
@@ -85,8 +90,8 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
     setState(() {
       _categoriaSelecionada = null;
       _servicoController.clear();
-      _servicosEncontrados = [];
     });
+    _carregarUltimosServicos();
   }
 
   Widget _buildServicoCard(Map<String, dynamic> servico) {
@@ -99,8 +104,9 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey[100]!,
-            blurRadius: 4,
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
             offset: Offset(0, 2),
           ),
         ],
@@ -108,71 +114,72 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            servico['nome'] ?? '',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            servico['categoria'] ?? '',
-            style: TextStyle(
-              color: Colors.red[600],
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
-            ),
-          ),
-          SizedBox(height: 8),
-          if (servico['prestadorNome'] != null && servico['prestadorNome'].toString().isNotEmpty)
-            Row(
-              children: [
-                Text(
-                  'Prestador: ${servico['prestadorNome']}',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => _verPerfilPrestador(servico),
-                  child: Text(
-                    'ver perfil',
-                    style: TextStyle(
-                      color: Colors.red[600],
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          SizedBox(height: 4),
-          if (servico['descricao'] != null && servico['descricao'].toString().isNotEmpty)
-            Text(
-              servico['descricao'],
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          SizedBox(height: 8),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 child: Text(
-                  servico['valorFormatado'] ?? 'R\$ ${servico['valor']?.toStringAsFixed(2) ?? '0,00'}',
+                  servico['nome'] ?? 'Serviço sem nome',
                   style: TextStyle(
-                    color: Colors.green[600],
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
                   ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  servico['categoria'] ?? 'Sem categoria',
+                  style: TextStyle(
+                    color: Colors.red[600],
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            servico['descricao'] ?? 'Sem descrição',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.person, size: 16, color: Colors.grey[500]),
+              SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  servico['prestadorNome'] ?? 'Prestador não informado',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                servico['valorFormatado'] ?? 'R\$ ${servico['valor']?.toStringAsFixed(2) ?? '0,00'}',
+                style: TextStyle(
+                  color: Colors.green[600],
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
               ),
               GestureDetector(
@@ -377,156 +384,170 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
                         ),
                       ),
                     ),
-                    GestureDetector(
-                      onTap: _mostrarFiltroCategoria,
-                      child: Container(
-                        margin: EdgeInsets.only(right: 8),
-                        padding: EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _categoriaSelecionada != null ? Colors.red[600] : Colors.grey[200],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.filter_list,
-                          color: _categoriaSelecionada != null ? Colors.white : Colors.grey[600],
-                          size: 20,
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
 
-              if (_categoriaSelecionada != null) ...[
-                SizedBox(height: 12),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.filter_list, size: 16, color: Colors.red[600]),
-                      SizedBox(width: 4),
-                      Text(
-                        _categoriaSelecionada!,
-                        style: TextStyle(
-                          color: Colors.red[600],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+              SizedBox(height: 16),
+
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: _mostrarFiltroCategoria,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: _categoriaSelecionada != null ? Colors.red[600] : Colors.red[50],
+                        borderRadius: BorderRadius.circular(25),
+                        border: Border.all(
+                          color: _categoriaSelecionada != null ? Colors.red[600]! : Colors.red[200]!,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => _aplicarFiltroCategoria(null),
-                        child: Icon(Icons.close, size: 16, color: Colors.red[600]),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.tune,
+                            color: _categoriaSelecionada != null ? Colors.white : Colors.red[600],
+                            size: 18,
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            _categoriaSelecionada ?? 'Categorias',
+                            style: TextStyle(
+                              color: _categoriaSelecionada != null ? Colors.white : Colors.red[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (_categoriaSelecionada != null) ...[
+                            SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => _aplicarFiltroCategoria(null),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  if (_servicoController.text.isNotEmpty || _categoriaSelecionada != null) ...[
+                    SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: _limparFiltros,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.clear,
+                              color: Colors.grey[600],
+                              size: 16,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'Limpar',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
 
               SizedBox(height: 20),
 
-              if (_servicoController.text.isNotEmpty) ...[
-                Text(
-                  _isSearchingServicos
-                      ? 'Buscando serviços...'
-                      : 'Serviços encontrados: ${_servicosEncontrados.length}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red[700],
+              if (_servicosEncontrados.isNotEmpty) ...[
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: _servicoController.text.isNotEmpty || _categoriaSelecionada != null
+                            ? 'Resultados encontrados: '
+                            : 'Últimos serviços cadastrados: ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red[600],
+                        ),
+                      ),
+                      TextSpan(
+                        text: '${_servicosEncontrados.length}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: 16),
               ],
 
-              if (_isSearchingServicos)
-                Expanded(
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.red[600],
-                    ),
+              Expanded(
+                child: _isSearchingServicos
+                    ? Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.red[600]!),
                   ),
                 )
-              else if (_servicosEncontrados.isEmpty && _servicoController.text.isNotEmpty)
-                Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 60,
-                          color: Colors.grey[400],
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Nenhum serviço encontrado',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Tente buscar por outro termo',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else if (_servicosEncontrados.isNotEmpty)
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: _servicosEncontrados.length,
-                      itemBuilder: (context, index) {
-                        final servico = _servicosEncontrados[index];
-                        return _buildServicoCard(servico);
-                      },
-                    ),
-                  )
-                else
-                  Expanded(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search,
-                            size: 60,
-                            color: Colors.grey[400],
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'Digite para buscar serviços',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Use o filtro para buscar por categoria',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
+                    : _servicosEncontrados.isEmpty
+                    ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 60,
+                        color: Colors.grey[400],
                       ),
-                    ),
+                      SizedBox(height: 16),
+                      Text(
+                        _servicoController.text.isNotEmpty || _categoriaSelecionada != null
+                            ? 'Nenhum serviço encontrado'
+                            : 'Nenhum serviço disponível',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        _servicoController.text.isNotEmpty || _categoriaSelecionada != null
+                            ? 'Tente ajustar sua pesquisa'
+                            : 'Aguarde novos serviços serem cadastrados',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
                   ),
+                )
+                    : ListView.builder(
+                  itemCount: _servicosEncontrados.length,
+                  itemBuilder: (context, index) {
+                    return _buildServicoCard(_servicosEncontrados[index]);
+                  },
+                ),
+              ),
             ],
           ),
         ),
