@@ -17,12 +17,31 @@ class PrestadorPesquisaController {
     onError = errorCallback;
   }
 
+  Future<void> carregarUltimosPrestadores() async {
+    print("Carregando os 10 últimos prestadores cadastrados");
+
+    onLoadingChanged?.call(true);
+
+    try {
+      List<Map<String, dynamic>> prestadores = await _buscarUltimosPrestadoresNoFirebase();
+
+      onLoadingChanged?.call(false);
+      onResultsChanged?.call(prestadores);
+
+    } catch (e) {
+      onLoadingChanged?.call(false);
+      onResultsChanged?.call([]);
+      onError?.call("Erro ao carregar prestadores");
+
+      print("Erro ao carregar últimos prestadores: $e");
+    }
+  }
+
   Future<void> pesquisarPrestadores(String query) async {
     print("Pesquisando prestadores: $query");
 
     if (query.trim().isEmpty) {
-      onLoadingChanged?.call(false);
-      onResultsChanged?.call([]);
+      await carregarUltimosPrestadores();
       return;
     }
 
@@ -41,6 +60,46 @@ class PrestadorPesquisaController {
 
       print("Erro na pesquisa: $e");
     }
+  }
+
+  Future<List<Map<String, dynamic>>> _buscarUltimosPrestadoresNoFirebase() async {
+    final snapshot = await _ref.child('usuarios').get();
+
+    if (!snapshot.exists) {
+      print("Nenhum usuário encontrado no banco de dados");
+      return [];
+    }
+
+    Map<dynamic, dynamic> usuariosData = snapshot.value as Map<dynamic, dynamic>;
+    List<Map<String, dynamic>> todosPrestadores = [];
+
+    usuariosData.forEach((cpfCnpj, userData) {
+      Map<String, dynamic> usuario = Map<String, dynamic>.from(userData);
+
+      if (usuario['tipoConta'] == false) {
+        todosPrestadores.add({
+          'cpfCnpj': cpfCnpj,
+          'nome': usuario['nome'] ?? '',
+          'email': usuario['email'] ?? '',
+          'telefone': usuario['telefone'] ?? '',
+          'logradouro': usuario['logradouro'] ?? '',
+          'cep': usuario['cep'] ?? '',
+          'idade': usuario['idade'] ?? 0,
+          'tipoConta': usuario['tipoConta'] ?? false,
+        });
+      }
+    });
+
+    todosPrestadores.sort((a, b) {
+      String cpfCnpjA = a['cpfCnpj']?.toString() ?? '';
+      String cpfCnpjB = b['cpfCnpj']?.toString() ?? '';
+      return cpfCnpjB.compareTo(cpfCnpjA);
+    });
+
+    List<Map<String, dynamic>> ultimosPrestadores = todosPrestadores.take(10).toList();
+
+    print("Últimos 10 prestadores carregados: ${ultimosPrestadores.length}");
+    return ultimosPrestadores;
   }
 
   Future<List<Map<String, dynamic>>> _buscarPrestadoresNoFirebase(String query) async {
