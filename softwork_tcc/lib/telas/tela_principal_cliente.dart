@@ -5,6 +5,7 @@ import 'tela_login.dart';
 import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
 import 'tela_cliente_solicitacoes_andamento.dart';
+import 'tela_notificacoes_cliente.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
 import '../telas/tela_cliente_solicitacao_servico.dart';
@@ -460,6 +461,33 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                         Icons.person,
                         color: Colors.white,
                         size: 28,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TelaNotificacoesCliente(
+                            nomeUsuario: widget.nomeUsuario,
+                            cpfCnpj: widget.cpfCnpj,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[100],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.red[300]!, width: 1),
+                      ),
+                      child: Icon(
+                        Icons.notifications,
+                        color: Colors.red[600],
+                        size: 18,
                       ),
                     ),
                   ),
