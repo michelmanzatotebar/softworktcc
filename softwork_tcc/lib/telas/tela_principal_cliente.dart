@@ -8,6 +8,7 @@ import 'tela_cliente_solicitacoes_andamento.dart';
 import 'tela_notificacoes_cliente.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
+import '../controllers/cliente_notificacoes_controller.dart';
 import '../telas/tela_cliente_solicitacao_servico.dart';
 
 class TelaPrincipalCliente extends StatefulWidget {
@@ -26,15 +27,24 @@ class TelaPrincipalCliente extends StatefulWidget {
 
 class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
   final TelaPrincipalClienteController _principalController = TelaPrincipalClienteController();
+  final ClienteNotificacoesController _notificacoesController = ClienteNotificacoesController();
 
   bool _isLoading = false;
   List<Map<String, dynamic>> _servicosRecentesPesquisados = [];
+  int _contadorNotificacoes = 0;
 
   @override
   void initState() {
     super.initState();
     _configurarCallbacks();
+    _configurarNotificacoesCliente();
     _carregarServicosRecentes();
+  }
+
+  @override
+  void dispose() {
+    _notificacoesController.dispose();
+    super.dispose();
   }
 
   void _configurarCallbacks() {
@@ -58,6 +68,37 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
         });
       },
     );
+  }
+
+  void _configurarNotificacoesCliente() {
+    _notificacoesController.setCallbacks(
+      novaNotificacaoCallback: (String mensagem) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.notifications, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(child: Text(mensagem)),
+              ],
+            ),
+            backgroundColor: Colors.green[600],
+            duration: Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      },
+      contadorCallback: (int contador) {
+        setState(() {
+          _contadorNotificacoes = contador;
+        });
+      },
+      errorCallback: (String erro) {
+        print("Erro nas notificações: $erro");
+      },
+    );
+
+    _notificacoesController.iniciarListenerNotificacoes(widget.cpfCnpj);
   }
 
   void _carregarServicosRecentes() {
@@ -484,10 +525,33 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.red[300]!, width: 1),
                       ),
-                      child: Icon(
-                        Icons.notifications,
-                        color: Colors.red[600],
-                        size: 18,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.notifications,
+                            color: Colors.red[600],
+                            size: 18,
+                          ),
+                          if (_contadorNotificacoes > 0) ...[
+                            SizedBox(width: 6),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$_contadorNotificacoes',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),

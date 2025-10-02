@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'solicitacao_controller.dart';
+import 'notificacao_controller.dart';
 
 class TelaDetalhesSolicitacaoPrestadorController {
   final SolicitacaoController _solicitacaoController = SolicitacaoController();
@@ -125,6 +126,8 @@ class TelaDetalhesSolicitacaoPrestadorController {
     return dadosSolicitacao?['statusSolicitacao']?.toString();
   }
 
+  String? get categoria => servico?['categoria']?.toString();
+
   String getClienteNome() {
     return dadosClienteCompletos?['nome']?.toString() ??
         cliente?['nome']?.toString() ?? 'N/A';
@@ -167,44 +170,121 @@ class TelaDetalhesSolicitacaoPrestadorController {
   }
 
   String formatarData(String? dataISO) {
-    if (dataISO == null || dataISO.isEmpty) return 'Data inválida';
-
+    if (dataISO == null || dataISO.isEmpty) {
+      return 'Data não informada';
+    }
     try {
       DateTime data = DateTime.parse(dataISO);
+      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
+    } catch (e) {
+      return 'Data inválida';
+    }
+  }
 
-      List<String> meses = [
-        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-      ];
-
-      String dia = data.day.toString().padLeft(2, '0');
-      String mes = meses[data.month - 1];
-      String ano = data.year.toString();
-      String hora = data.hour.toString().padLeft(2, '0');
-      String minuto = data.minute.toString().padLeft(2, '0');
-
-      return '$dia de $mes de $ano às $hora:$minuto';
+  String formatarDataCompleta(String? dataISO) {
+    if (dataISO == null || dataISO.isEmpty) {
+      return 'Data não informada';
+    }
+    try {
+      DateTime data = DateTime.parse(dataISO);
+      return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year} às ${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
     } catch (e) {
       return 'Data inválida';
     }
   }
 
   String formatarValor(dynamic valor) {
-    if (valor == null) return 'R\$ 0,00';
-
-    try {
-      double valorDouble;
-      if (valor is String) {
-        valorDouble = double.parse(valor);
-      } else if (valor is num) {
-        valorDouble = valor.toDouble();
-      } else {
+    if (valor != null) {
+      try {
+        double valorDouble;
+        if (valor is String) {
+          valorDouble = double.parse(valor);
+        } else if (valor is num) {
+          valorDouble = valor.toDouble();
+        } else {
+          return 'R\$ 0,00';
+        }
+        return 'R\$ ${valorDouble.toStringAsFixed(2).replaceAll('.', ',')}';
+      } catch (e) {
         return 'R\$ 0,00';
       }
+    }
+    return 'R\$ 0,00';
+  }
 
-      return 'R\$ ${valorDouble.toStringAsFixed(2).replaceAll('.', ',')}';
+  Future<void> aceitarSolicitacao() async {
+    if (dadosSolicitacao == null) return;
+
+    try {
+      isLoading = true;
+      onUpdateUI?.call();
+
+      final solicitacaoId = dadosSolicitacao!['id']?.toString();
+      if (solicitacaoId == null || solicitacaoId.isEmpty) {
+        throw Exception("ID da solicitação não encontrado");
+      }
+
+      await _ref.child('solicitacoes/$solicitacaoId').update({
+        'statusSolicitacao': 'Aceita',
+      });
+
+      await NotificacaoController.notificarMudancaStatus(
+        clienteCpfCnpj: cliente?['cpfCnpj'] ?? '',
+        tituloSolicitacao: titulo ?? 'Solicitação',
+        nomePrestador: prestador?['nome'] ?? 'Prestador',
+        tipoStatus: 'aceita',
+        solicitacaoId: solicitacaoId,
+      );
+
+      onShowMessage?.call('Solicitação aceita com sucesso!', true);
+
+      await Future.delayed(Duration(seconds: 1));
+      onNavigateBack?.call();
+
     } catch (e) {
-      return 'R\$ 0,00';
+      print("Erro ao aceitar solicitação: $e");
+      onShowMessage?.call('Erro ao aceitar solicitação', false);
+    } finally {
+      isLoading = false;
+      onUpdateUI?.call();
+    }
+  }
+
+  Future<void> recusarSolicitacao() async {
+    if (dadosSolicitacao == null) return;
+
+    try {
+      isLoading = true;
+      onUpdateUI?.call();
+
+      final solicitacaoId = dadosSolicitacao!['id']?.toString();
+      if (solicitacaoId == null || solicitacaoId.isEmpty) {
+        throw Exception("ID da solicitação não encontrado");
+      }
+
+      await _ref.child('solicitacoes/$solicitacaoId').update({
+        'statusSolicitacao': 'Recusada',
+      });
+
+      await NotificacaoController.notificarMudancaStatus(
+        clienteCpfCnpj: cliente?['cpfCnpj'] ?? '',
+        tituloSolicitacao: titulo ?? 'Solicitação',
+        nomePrestador: prestador?['nome'] ?? 'Prestador',
+        tipoStatus: 'recusada',
+        solicitacaoId: solicitacaoId,
+      );
+
+      onShowMessage?.call('Solicitação recusada.', true);
+
+      await Future.delayed(Duration(seconds: 1));
+      onNavigateBack?.call();
+
+    } catch (e) {
+      print("Erro ao recusar solicitação: $e");
+      onShowMessage?.call('Erro ao recusar solicitação', false);
+    } finally {
+      isLoading = false;
+      onUpdateUI?.call();
     }
   }
 
@@ -237,65 +317,5 @@ class TelaDetalhesSolicitacaoPrestadorController {
         ],
       ),
     );
-  }
-
-  Future<void> aceitarSolicitacao() async {
-    if (dadosSolicitacao == null) return;
-
-    try {
-      isLoading = true;
-      onUpdateUI?.call();
-
-      final solicitacaoId = dadosSolicitacao!['id']?.toString();
-      if (solicitacaoId == null || solicitacaoId.isEmpty) {
-        throw Exception("ID da solicitação não encontrado");
-      }
-
-      await _ref.child('solicitacoes/$solicitacaoId').update({
-        'statusSolicitacao': 'Aceita',
-      });
-
-      onShowMessage?.call('Solicitação aceita com sucesso!', true);
-
-      await Future.delayed(Duration(seconds: 1));
-      onNavigateBack?.call();
-
-    } catch (e) {
-      print("Erro ao aceitar solicitação: $e");
-      onShowMessage?.call('Erro ao aceitar solicitação', false);
-    } finally {
-      isLoading = false;
-      onUpdateUI?.call();
-    }
-  }
-
-  Future<void> recusarSolicitacao() async {
-    if (dadosSolicitacao == null) return;
-
-    try {
-      isLoading = true;
-      onUpdateUI?.call();
-
-      final solicitacaoId = dadosSolicitacao!['id']?.toString();
-      if (solicitacaoId == null || solicitacaoId.isEmpty) {
-        throw Exception("ID da solicitação não encontrado");
-      }
-
-      await _ref.child('solicitacoes/$solicitacaoId').update({
-        'statusSolicitacao': 'Recusada',
-      });
-
-      onShowMessage?.call('Solicitação recusada.', true);
-
-      await Future.delayed(Duration(seconds: 1));
-      onNavigateBack?.call();
-
-    } catch (e) {
-      print("Erro ao recusar solicitação: $e");
-      onShowMessage?.call('Erro ao recusar solicitação', false);
-    } finally {
-      isLoading = false;
-      onUpdateUI?.call();
-    }
   }
 }
