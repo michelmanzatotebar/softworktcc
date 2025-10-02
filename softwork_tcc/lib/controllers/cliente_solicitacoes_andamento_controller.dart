@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'notificacao_controller.dart';
 
 class ClienteSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
@@ -116,9 +117,26 @@ class ClienteSolicitacoesAndamentoController {
 
       String novoStatus = confirmado ? 'Finalizado' : 'Em andamento';
 
+      final snapshot = await _ref.child('solicitacoes/$solicitacaoId').get();
+      if (!snapshot.exists) {
+        throw Exception("Solicitação não encontrada");
+      }
+
+      Map<String, dynamic> solicitacao = Map<String, dynamic>.from(snapshot.value as Map);
+
       await _ref.child('solicitacoes/$solicitacaoId').update({
         'statusSolicitacao': novoStatus,
       });
+
+      if (confirmado) {
+        await NotificacaoController.notificarMudancaStatus(
+          clienteCpfCnpj: solicitacao['cliente']['cpfCnpj'] ?? '',
+          tituloSolicitacao: solicitacao['titulo'] ?? 'Solicitação',
+          nomePrestador: solicitacao['prestador']['nome'] ?? 'Prestador',
+          tipoStatus: 'finalizada',
+          solicitacaoId: solicitacaoId,
+        );
+      }
 
       print("Conclusão definida - Status: $novoStatus");
     } catch (e) {

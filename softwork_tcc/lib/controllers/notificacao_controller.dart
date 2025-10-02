@@ -97,7 +97,7 @@ class NotificacaoController {
         platformDetails,
       );
 
-      print("✅ Notificação local mostrada: $titulo");
+      print("Notificação local mostrada: $titulo");
     } catch (e) {
       print("Erro ao mostrar notificação local: $e");
     }
@@ -135,7 +135,6 @@ class NotificacaoController {
       print("Cliente: $nomeCliente");
       print("Serviço: $nomeServico");
 
-      // Salvar notificação no histórico do prestador
       await _salvarNotificacaoNoHistorico(
         prestadorCpfCnpj: prestadorCpfCnpj,
         titulo: 'Nova Solicitação!',
@@ -147,6 +146,69 @@ class NotificacaoController {
     } catch (e) {
       print("Erro ao enviar notificação: $e");
     }
+  }
+
+  static Future<void> notificarMudancaStatus({
+    required String clienteCpfCnpj,
+    required String tituloSolicitacao,
+    required String nomePrestador,
+    required String tipoStatus,
+    required String solicitacaoId,
+  }) async {
+    try {
+      print("=== NOTIFICANDO MUDANÇA DE STATUS ===");
+      print("Cliente: $clienteCpfCnpj");
+      print("Solicitação: $tituloSolicitacao");
+      print("Prestador: $nomePrestador");
+      print("Novo Status: $tipoStatus");
+
+      String titulo = _gerarTituloStatus(tipoStatus);
+      String mensagem = _gerarMensagemStatus(tipoStatus, tituloSolicitacao, nomePrestador);
+
+      await _ref.child('usuarios/$clienteCpfCnpj/notificacoes').push().set({
+        'titulo': titulo,
+        'mensagem': mensagem,
+        'timestamp': DateTime.now().toIso8601String(),
+        'lida': false,
+        'tipo': 'mudanca_status',
+        'tipo_status': tipoStatus,
+        'solicitacaoId': solicitacaoId,
+      });
+
+      print("Notificação de mudança de status salva com sucesso!");
+
+    } catch (e) {
+      print("Erro ao notificar mudança de status: $e");
+    }
+  }
+
+  static String _gerarTituloStatus(String tipoStatus) {
+    switch (tipoStatus.toLowerCase()) {
+      case 'aceita':
+        return 'Solicitação Aceita!';
+      case 'recusada':
+        return 'Solicitação Recusada!';
+      case 'em_andamento':
+        return 'Solicitação em Andamento!';
+      case 'cancelada':
+        return 'Solicitação Cancelada!';
+      case 'concluida':
+        return 'Solicitação Concluída pelo prestador!';
+      case 'finalizada':
+        return 'Solicitação Finalizada!';
+      default:
+        return 'Atualização de Solicitação';
+    }
+  }
+
+  static String _gerarMensagemStatus(String tipoStatus, String tituloSolicitacao, String nomePrestador) {
+    String statusTexto = tipoStatus.toLowerCase().replaceAll('_', ' ');
+
+    if (tipoStatus == 'finalizada') {
+      return 'Você definiu sua solicitação ($tituloSolicitacao) como $statusTexto';
+    }
+
+    return 'Sua solicitação ($tituloSolicitacao) foi definida como $statusTexto por $nomePrestador';
   }
 
   static Future<void> _salvarNotificacaoNoHistorico({

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'notificacao_controller.dart';
 
 class PrestadorSolicitacoesAndamentoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
@@ -100,9 +101,26 @@ class PrestadorSolicitacoesAndamentoController {
     try {
       _setLoading(true);
 
+      final snapshot = await _ref.child('solicitacoes/$solicitacaoId').get();
+      if (!snapshot.exists) {
+        throw Exception("Solicitação não encontrada");
+      }
+
+      Map<String, dynamic> solicitacao = Map<String, dynamic>.from(snapshot.value as Map);
+
       await _ref.child('solicitacoes/$solicitacaoId').update({
         'statusSolicitacao': novoStatus,
       });
+
+      String tipoStatus = _converterStatusParaTipo(novoStatus);
+
+      await NotificacaoController.notificarMudancaStatus(
+        clienteCpfCnpj: solicitacao['cliente']['cpfCnpj'] ?? '',
+        tituloSolicitacao: solicitacao['titulo'] ?? 'Solicitação',
+        nomePrestador: solicitacao['prestador']['nome'] ?? 'Prestador',
+        tipoStatus: tipoStatus,
+        solicitacaoId: solicitacaoId,
+      );
 
       print("Status atualizado para: $novoStatus");
     } catch (e) {
@@ -110,6 +128,19 @@ class PrestadorSolicitacoesAndamentoController {
       onError?.call("Erro ao atualizar status da solicitação");
     } finally {
       _setLoading(false);
+    }
+  }
+
+  String _converterStatusParaTipo(String status) {
+    switch (status.toLowerCase()) {
+      case 'em andamento':
+        return 'em_andamento';
+      case 'cancelada':
+        return 'cancelada';
+      case 'concluída':
+        return 'concluida';
+      default:
+        return status.toLowerCase().replaceAll(' ', '_');
     }
   }
 
