@@ -10,6 +10,7 @@ import '../controllers/prestador_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
 import '../controllers/cliente_notificacoes_controller.dart';
 import '../telas/tela_cliente_solicitacao_servico.dart';
+import 'tela_cliente_comunidade.dart';
 
 class TelaPrincipalCliente extends StatefulWidget {
   final String nomeUsuario;
@@ -630,7 +631,17 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                   ],
                 ),
                 child: GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TelaClienteComunidade(
+                          clienteNome: widget.nomeUsuario,
+                          clienteCpfCnpj: widget.cpfCnpj,
+                        ),
+                      ),
+                    );
+                  },
                   child: Container(
                     height: 60,
                     decoration: BoxDecoration(
