@@ -9,6 +9,10 @@ class ClienteComunidadeController {
   Function(List<Map<String, dynamic>>)? _avaliacoesComunidadeCallback;
   Function(String, bool)? _messageCallback;
   Function(List<String>)? _solicitacoesAvaliadasCallback;
+  Function(List<Map<String, dynamic>>)? _minhasSugestoesCallback;
+  Function(List<Map<String, dynamic>>)? _sugestoesComunidadeCallback;
+  Function(List<Map<String, dynamic>>)? _minhasDuvidasCallback;
+  Function(List<Map<String, dynamic>>)? _duvidasComunidadeCallback;
 
   void setCallbacks({
     Function(bool)? loadingCallback,
@@ -17,6 +21,10 @@ class ClienteComunidadeController {
     Function(List<Map<String, dynamic>>)? avaliacoesComunidadeCallback,
     Function(String, bool)? messageCallback,
     Function(List<String>)? solicitacoesAvaliadasCallback,
+    Function(List<Map<String, dynamic>>)? minhasSugestoesCallback,
+    Function(List<Map<String, dynamic>>)? sugestoesComunidadeCallback,
+    Function(List<Map<String, dynamic>>)? minhasDuvidasCallback,
+    Function(List<Map<String, dynamic>>)? duvidasComunidadeCallback,
   }) {
     _loadingCallback = loadingCallback;
     _solicitacoesFinalizadasCallback = solicitacoesFinalizadasCallback;
@@ -24,6 +32,10 @@ class ClienteComunidadeController {
     _avaliacoesComunidadeCallback = avaliacoesComunidadeCallback;
     _messageCallback = messageCallback;
     _solicitacoesAvaliadasCallback = solicitacoesAvaliadasCallback;
+    _minhasSugestoesCallback = minhasSugestoesCallback;
+    _sugestoesComunidadeCallback = sugestoesComunidadeCallback;
+    _minhasDuvidasCallback = minhasDuvidasCallback;
+    _duvidasComunidadeCallback = duvidasComunidadeCallback;
   }
 
   void carregarSolicitacoesFinalizadas(String clienteCpfCnpj) {
@@ -150,5 +162,284 @@ class ClienteComunidadeController {
   }
 
   void dispose() {
+  }
+
+  void carregarMinhasSugestoes(String clienteCpfCnpj) {
+    _loadingCallback?.call(true);
+
+    _ref.child('avaliacao').onValue.listen((event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> avaliacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> minhasSugestoes = [];
+
+        avaliacoesData.forEach((key, value) {
+          Map<String, dynamic> item = Map<String, dynamic>.from(value);
+          item['id'] = key;
+
+          if (item['categoria'] == 'Sugestao' &&
+              item['cliente']?['cpfCnpj'] == clienteCpfCnpj) {
+            minhasSugestoes.add(item);
+          }
+        });
+
+        _minhasSugestoesCallback?.call(minhasSugestoes);
+      } else {
+        _minhasSugestoesCallback?.call([]);
+      }
+      _loadingCallback?.call(false);
+    });
+  }
+
+  void carregarSugestoesComunidade() {
+    _loadingCallback?.call(true);
+
+    _ref.child('avaliacao').onValue.listen((event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> avaliacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> sugestoesComunidade = [];
+
+        avaliacoesData.forEach((key, value) {
+          Map<String, dynamic> item = Map<String, dynamic>.from(value);
+          item['id'] = key;
+
+          if (item['categoria'] == 'Sugestao') {
+            sugestoesComunidade.add(item);
+          }
+        });
+
+        _sugestoesComunidadeCallback?.call(sugestoesComunidade);
+      } else {
+        _sugestoesComunidadeCallback?.call([]);
+      }
+      _loadingCallback?.call(false);
+    });
+  }
+
+  void carregarMinhasDuvidas(String clienteCpfCnpj) {
+    _loadingCallback?.call(true);
+
+    _ref.child('avaliacao').onValue.listen((event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> avaliacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> minhasDuvidas = [];
+
+        avaliacoesData.forEach((key, value) {
+          Map<String, dynamic> item = Map<String, dynamic>.from(value);
+          item['id'] = key;
+
+          if (item['categoria'] == 'Duvida' &&
+              item['cliente']?['cpfCnpj'] == clienteCpfCnpj) {
+            minhasDuvidas.add(item);
+          }
+        });
+
+        _minhasDuvidasCallback?.call(minhasDuvidas);
+      } else {
+        _minhasDuvidasCallback?.call([]);
+      }
+      _loadingCallback?.call(false);
+    });
+  }
+
+  void carregarDuvidasComunidade() {
+    _loadingCallback?.call(true);
+
+    _ref.child('avaliacao').onValue.listen((event) {
+      if (event.snapshot.exists) {
+        Map<dynamic, dynamic> avaliacoesData = event.snapshot.value as Map<dynamic, dynamic>;
+        List<Map<String, dynamic>> duvidasComunidade = [];
+
+        avaliacoesData.forEach((key, value) {
+          Map<String, dynamic> item = Map<String, dynamic>.from(value);
+          item['id'] = key;
+
+          if (item['categoria'] == 'Duvida') {
+            duvidasComunidade.add(item);
+          }
+        });
+
+        _duvidasComunidadeCallback?.call(duvidasComunidade);
+      } else {
+        _duvidasComunidadeCallback?.call([]);
+      }
+      _loadingCallback?.call(false);
+    });
+  }
+
+  Future<void> salvarSugestao({
+    required String clienteNome,
+    required String clienteCpfCnpj,
+    required String categoria,
+    required String titulo,
+    required String descricao,
+  }) async {
+    try {
+      _loadingCallback?.call(true);
+
+      final sugestaoRef = _ref.child('avaliacao').push();
+
+      Map<String, dynamic> sugestaoData = {
+        'id': sugestaoRef.key,
+        'titulo': titulo,
+        'descricao': descricao,
+        'categoria': 'Sugestao',
+        'categoriaServico': categoria,
+        'cliente': {
+          'nome': clienteNome,
+          'cpfCnpj': clienteCpfCnpj,
+        },
+      };
+
+      await sugestaoRef.set(sugestaoData);
+
+      _messageCallback?.call('Sugestão enviada com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao enviar sugestão: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> salvarDuvida({
+    required String clienteNome,
+    required String clienteCpfCnpj,
+    required String categoria,
+    required String titulo,
+    required String descricao,
+  }) async {
+    try {
+      _loadingCallback?.call(true);
+
+      final duvidaRef = _ref.child('avaliacao').push();
+
+      Map<String, dynamic> duvidaData = {
+        'id': duvidaRef.key,
+        'titulo': titulo,
+        'descricao': descricao,
+        'categoria': 'Duvida',
+        'categoriaServico': categoria,
+        'cliente': {
+          'nome': clienteNome,
+          'cpfCnpj': clienteCpfCnpj,
+        },
+      };
+
+      await duvidaRef.set(duvidaData);
+
+      _messageCallback?.call('Dúvida enviada com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao enviar dúvida: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> atualizarAvaliacao({
+    required String avaliacaoId,
+    required double nota,
+    required String descricao,
+  }) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$avaliacaoId').update({
+        'nota': nota,
+        'descricao': descricao,
+      });
+
+      _messageCallback?.call('Avaliação atualizada com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao atualizar avaliação: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> excluirAvaliacao(String avaliacaoId) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$avaliacaoId').remove();
+
+      _messageCallback?.call('Avaliação excluída com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao excluir avaliação: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> atualizarSugestao({
+    required String sugestaoId,
+    required String categoria,
+    required String titulo,
+    required String descricao,
+  }) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$sugestaoId').update({
+        'categoriaServico': categoria,
+        'titulo': titulo,
+        'descricao': descricao,
+      });
+
+      _messageCallback?.call('Sugestão atualizada com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao atualizar sugestão: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> excluirSugestao(String sugestaoId) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$sugestaoId').remove();
+
+      _messageCallback?.call('Sugestão excluída com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao excluir sugestão: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> atualizarDuvida({
+    required String duvidaId,
+    required String categoria,
+    required String titulo,
+    required String descricao,
+  }) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$duvidaId').update({
+        'categoriaServico': categoria,
+        'titulo': titulo,
+        'descricao': descricao,
+      });
+
+      _messageCallback?.call('Dúvida atualizada com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao atualizar dúvida: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
+  }
+
+  Future<void> excluirDuvida(String duvidaId) async {
+    try {
+      _loadingCallback?.call(true);
+
+      await _ref.child('avaliacao/$duvidaId').remove();
+
+      _messageCallback?.call('Dúvida excluída com sucesso!', true);
+      _loadingCallback?.call(false);
+    } catch (e) {
+      _messageCallback?.call('Erro ao excluir dúvida: ${e.toString()}', false);
+      _loadingCallback?.call(false);
+    }
   }
 }
