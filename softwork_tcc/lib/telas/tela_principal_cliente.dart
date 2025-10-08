@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
+import 'tela_perfil_prestador.dart';
 import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
 import 'tela_cliente_solicitacoes_andamento.dart';
@@ -475,7 +476,14 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
   }
 
   void _verPerfilPrestador(Map<String, dynamic> servico) {
-    print("Redirecionando para o perfil do prestador: ${servico['prestadorNome']}");
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaPerfilPrestador(
+          prestadorCpfCnpj: servico['prestadorCpfCnpj'] ?? '',
+        ),
+      ),
+    );
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:softwork_tcc/telas/tela_perfil_prestador.dart';
 import '../controllers/prestador_pesquisa_controller.dart';
 
 class TelaPesquisaPrestador extends StatefulWidget {
@@ -52,7 +53,14 @@ class _TelaPesquisaPrestadorState extends State<TelaPesquisaPrestador> {
   }
 
   void _abrirPerfilPrestador(Map<String, dynamic> prestador) {
-    print("Redirecionado para o perfil do prestador: ${prestador['nome']} - CPF/CNPJ: ${prestador['cpfCnpj']}");
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaPerfilPrestador(
+          prestadorCpfCnpj: prestador['cpfCnpj'] ?? '',
+        ),
+      ),
+    );
   }
 
   @override
