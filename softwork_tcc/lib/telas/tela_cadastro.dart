@@ -454,6 +454,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 _buildLabel('Nome completo'),
                 TextFormField(
                   controller: _nomeController,
+                  maxLength: 100,
                   decoration: _buildInputDecoration(),
                   validator: _cadastroController.validarNome,
                 ),

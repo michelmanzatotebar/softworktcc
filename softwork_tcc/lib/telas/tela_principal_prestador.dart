@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
 import 'tela_gerenciar_servicos_prestador.dart';
 import 'tela_detalhes_solicitacao_prestador.dart';
+import 'tela_perfil_prestador.dart';
 import 'tela_prestador_solicitacoes_andamento.dart';
 import 'tela_notificacoes_prestador.dart';
 import '../controllers/tela_principal_prestador_controller.dart';
@@ -211,8 +212,16 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          print("Editar perfil");
                           Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TelaPerfilPrestador(
+                                prestadorCpfCnpj: widget.cpfCnpj,
+                                isMeuPerfil: true,
+                              ),
+                            ),
+                          );
                         },
                         child: Text(
                           'Editar Perfil',

@@ -212,6 +212,71 @@ class PerfilPrestadorController {
     return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
   }
 
+  Future<void> salvarBiografia(String cpfCnpj, String biografia) async {
+    try {
+      await _ref.child('usuarios/$cpfCnpj').update({
+        'biografia': biografia.trim(),
+      });
+
+      if (dadosPrestador != null) {
+        dadosPrestador!['biografia'] = biografia.trim();
+      }
+
+      print("Biografia salva com sucesso");
+    } catch (e) {
+      print("Erro ao salvar biografia: $e");
+      throw Exception("Erro ao salvar biografia");
+    }
+  }
+
+  Future<void> salvarNome(String cpfCnpj, String nome) async {
+    try {
+      if (nome.trim().isEmpty) {
+        throw Exception("Nome não pode estar vazio");
+      }
+
+      await _ref.child('usuarios/$cpfCnpj').update({
+        'nome': nome.trim(),
+      });
+
+      if (dadosPrestador != null) {
+        dadosPrestador!['nome'] = nome.trim();
+      }
+
+      print("Nome salvo com sucesso");
+    } catch (e) {
+      print("Erro ao salvar nome: $e");
+      throw Exception("Erro ao salvar nome");
+    }
+  }
+
+  Future<void> salvarTelefone(String cpfCnpj, String telefone) async {
+    try {
+      String telefoneLimpo = telefone.replaceAll(RegExp(r'[^\d]'), '');
+
+      if (telefoneLimpo.isEmpty) {
+        throw Exception("Telefone não pode estar vazio");
+      }
+
+      if (telefoneLimpo.length != 10 && telefoneLimpo.length != 11) {
+        throw Exception("Telefone inválido");
+      }
+
+      await _ref.child('usuarios/$cpfCnpj').update({
+        'telefone': telefoneLimpo,
+      });
+
+      if (dadosPrestador != null) {
+        dadosPrestador!['telefone'] = telefoneLimpo;
+      }
+
+      print("Telefone salvo com sucesso");
+    } catch (e) {
+      print("Erro ao salvar telefone: $e");
+      throw Exception("Erro ao salvar telefone");
+    }
+  }
+
   void dispose() {
   }
 }
