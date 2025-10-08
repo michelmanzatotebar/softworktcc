@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../controllers/perfil_prestador_controller.dart';
 
 class TelaPerfilPrestador extends StatefulWidget {
   final String prestadorCpfCnpj;
+  final bool isMeuPerfil;
 
   const TelaPerfilPrestador({
     Key? key,
     required this.prestadorCpfCnpj,
+    this.isMeuPerfil = false,
   }) : super(key: key);
 
   @override
@@ -17,6 +21,11 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
   final PerfilPrestadorController _controller = PerfilPrestadorController();
   int _secaoSelecionada = 0;
   bool _isLoading = true;
+
+  final telefoneMaskFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
 
   @override
   void initState() {
@@ -54,6 +63,263 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
 
   Future<void> _carregarDados() async {
     await _controller.carregarDadosPrestador(widget.prestadorCpfCnpj);
+  }
+
+  void _mostrarDialogEditarBiografia() {
+    final TextEditingController biografiaController = TextEditingController();
+    biografiaController.text = _controller.temBiografia() ? _controller.getBiografia() : '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Editar Biografia',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: biografiaController,
+                  maxLines: 5,
+                  maxLength: 300,
+                  decoration: InputDecoration(
+                    hintText: 'Conte um pouco sobre você e sua experiência profissional...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                String novaBiografia = biografiaController.text.trim();
+
+                try {
+                  await _controller.salvarBiografia(widget.prestadorCpfCnpj, novaBiografia);
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Biografia atualizada com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao salvar biografia'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Salvar',
+                style: TextStyle(
+                  color: Colors.red[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogEditarNome() {
+    final TextEditingController nomeController = TextEditingController();
+    nomeController.text = _controller.getNome();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Editar Nome',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: nomeController,
+            maxLength: 100,
+            decoration: InputDecoration(
+              hintText: 'Digite seu nome completo',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                String novoNome = nomeController.text.trim();
+
+                if (novoNome.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Nome não pode estar vazio'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controller.salvarNome(widget.prestadorCpfCnpj, novoNome);
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Nome atualizado com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao salvar nome'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Salvar',
+                style: TextStyle(
+                  color: Colors.red[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogEditarTelefone() {
+    final TextEditingController telefoneController = TextEditingController();
+    telefoneController.text = _controller.getTelefone();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Editar Telefone',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: telefoneController,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [telefoneMaskFormatter],
+            decoration: InputDecoration(
+              hintText: '(00) 00000-0000',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                String novoTelefone = telefoneController.text.trim();
+
+                if (novoTelefone.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Telefone não pode estar vazio'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controller.salvarTelefone(widget.prestadorCpfCnpj, novoTelefone);
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Telefone atualizado com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString().replaceAll('Exception: ', '')),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Salvar',
+                style: TextStyle(
+                  color: Colors.red[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -247,13 +513,36 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _controller.getNome(),
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _controller.getNome(),
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+                if (widget.isMeuPerfil)
+                  GestureDetector(
+                    onTap: _mostrarDialogEditarNome,
+                    child: Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.blue[600],
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             SizedBox(height: 4),
             Text(
@@ -325,6 +614,22 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
                     ),
                   ),
                 ),
+                if (widget.isMeuPerfil)
+                  GestureDetector(
+                    onTap: _mostrarDialogEditarTelefone,
+                    child: Container(
+                      padding: EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.blue[600],
+                        size: 14,
+                      ),
+                    ),
+                  ),
               ],
             ),
             SizedBox(height: 12),
@@ -456,13 +761,43 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
 
       SizedBox(height: 20),
 
-      Text(
-        'Sobre mim',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Sobre mim',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+          if (widget.isMeuPerfil)
+            GestureDetector(
+              onTap: _mostrarDialogEditarBiografia,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red[600],
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.edit, color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text(
+                      'Editar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
 
       SizedBox(height: 12),

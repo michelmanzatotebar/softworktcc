@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'tela_login.dart';
+import 'tela_perfil_cliente.dart';
 import 'tela_perfil_prestador.dart';
 import 'tela_pesquisa_prestador.dart';
 import 'tela_pesquisa_servicos.dart';
@@ -212,8 +213,15 @@ class _TelaPrincipalClienteState extends State<TelaPrincipalCliente> {
                     Expanded(
                       child: GestureDetector(
                         onTap: () {
-                          print("Editar perfil");
-                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TelaPerfilCliente(
+                                clienteCpfCnpj: widget.cpfCnpj,
+                                isMeuPerfil: true,
+                              ),
+                            ),
+                          );
                         },
                         child: Text(
                           'Editar Perfil',
