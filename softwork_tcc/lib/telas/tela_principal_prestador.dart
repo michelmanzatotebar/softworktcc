@@ -9,6 +9,7 @@ import 'tela_prestador_solicitacoes_andamento.dart';
 import 'tela_notificacoes_prestador.dart';
 import '../controllers/tela_principal_prestador_controller.dart';
 import '../controllers/prestador_notificacoes_controller.dart';
+import '../telas/tela_prestador_comunidade.dart';
 
 class TelaPrincipalPrestador extends StatefulWidget {
   final String nomeUsuario;
@@ -568,7 +569,15 @@ class _TelaPrincipalPrestadorState extends State<TelaPrincipalPrestador> {
                       ),
                       child: GestureDetector(
                         onTap: () {
-                          print("Navegar para Comunidade");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TelaPrestadorComunidade(
+                                prestadorNome: widget.nomeUsuario,
+                                prestadorCpfCnpj: widget.cpfCnpj,
+                              ),
+                            ),
+                          );
                         },
                         child: Container(
                           height: 60,

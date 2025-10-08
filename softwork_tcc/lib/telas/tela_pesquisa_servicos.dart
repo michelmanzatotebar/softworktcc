@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../controllers/servicos_pesquisa_controller.dart';
 import '../controllers/tela_principal_cliente_controller.dart';
 import 'tela_cliente_solicitacao_servico.dart';
+import 'tela_perfil_prestador.dart';
 
 class UltimoServicoVerificado {
   static Map<String, dynamic>? servico;
@@ -294,7 +295,14 @@ class _TelaPesquisaServicosState extends State<TelaPesquisaServicos> {
   }
 
   void _verPerfilPrestador(Map<String, dynamic> servico) {
-    print("Redirecionando para o perfil do prestador: ${servico['prestadorNome']}");
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaPerfilPrestador(
+          prestadorCpfCnpj: servico['prestadorCpfCnpj'] ?? '',
+        ),
+      ),
+    );
   }
 
   void _salvarUltimoServicoVerificado(Map<String, dynamic> servico) {
