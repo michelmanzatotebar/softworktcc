@@ -356,7 +356,7 @@ class _TelaPerfilClienteState extends State<TelaPerfilCliente> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        'Perfil',
+                        'Perfil do Cliente',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
