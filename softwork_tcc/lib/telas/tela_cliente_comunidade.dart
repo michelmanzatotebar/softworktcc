@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/cliente_comunidade_controller.dart';
+import 'tela_perfil_prestador.dart';
+import 'tela_perfil_cliente.dart';
 
 class TelaClienteComunidade extends StatefulWidget {
   final String clienteNome;
@@ -27,6 +29,10 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
   int _opcaoAvaliarSelecionada = 0;
   int _opcaoSugestoesSelecionada = 0;
   int _opcaoDuvidasSelecionada = 0;
+
+  String? _filtroAvaliacoesSelecionado;
+  String? _filtroSugestoesSelecionado;
+  String? _filtroDuvidasSelecionado;
 
   bool _isLoading = false;
   List<Map<String, dynamic>> _solicitacoesFinalizadas = [];
@@ -141,6 +147,153 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
     _descricaoController.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  List<Map<String, dynamic>> _filtrarAvaliacoes(List<Map<String, dynamic>> avaliacoes) {
+    if (_filtroAvaliacoesSelecionado == null || _filtroAvaliacoesSelecionado == 'Todas') {
+      return avaliacoes;
+    }
+    return avaliacoes.where((avaliacao) {
+      String categoria = avaliacao['servico']?['categoria'] ?? '';
+      return categoria == _filtroAvaliacoesSelecionado;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _filtrarSugestoes(List<Map<String, dynamic>> sugestoes) {
+    if (_filtroSugestoesSelecionado == null || _filtroSugestoesSelecionado == 'Todas') {
+      return sugestoes;
+    }
+    return sugestoes.where((sugestao) {
+      String categoria = sugestao['categoriaServico'] ?? '';
+      return categoria == _filtroSugestoesSelecionado;
+    }).toList();
+  }
+
+  List<Map<String, dynamic>> _filtrarDuvidas(List<Map<String, dynamic>> duvidas) {
+    if (_filtroDuvidasSelecionado == null || _filtroDuvidasSelecionado == 'Todas') {
+      return duvidas;
+    }
+    return duvidas.where((duvida) {
+      String categoria = duvida['categoriaServico'] ?? '';
+      return categoria == _filtroDuvidasSelecionado;
+    }).toList();
+  }
+
+  void _mostrarFiltroAvaliacoes() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Filtrar por categoria'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                ListTile(
+                  title: Text('Todas'),
+                  onTap: () {
+                    setState(() {
+                      _filtroAvaliacoesSelecionado = 'Todas';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ..._categorias.map((categoria) {
+                  return ListTile(
+                    title: Text(categoria),
+                    onTap: () {
+                      setState(() {
+                        _filtroAvaliacoesSelecionado = categoria;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _mostrarFiltroSugestoes() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Filtrar por categoria'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                ListTile(
+                  title: Text('Todas'),
+                  onTap: () {
+                    setState(() {
+                      _filtroSugestoesSelecionado = 'Todas';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ..._categorias.map((categoria) {
+                  return ListTile(
+                    title: Text(categoria),
+                    onTap: () {
+                      setState(() {
+                        _filtroSugestoesSelecionado = categoria;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _mostrarFiltroDuvidas() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Filtrar por categoria'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView(
+              shrinkWrap: true,
+              children: [
+                ListTile(
+                  title: Text('Todas'),
+                  onTap: () {
+                    setState(() {
+                      _filtroDuvidasSelecionado = 'Todas';
+                    });
+                    Navigator.pop(context);
+                  },
+                ),
+                ..._categorias.map((categoria) {
+                  return ListTile(
+                    title: Text(categoria),
+                    onTap: () {
+                      setState(() {
+                        _filtroDuvidasSelecionado = categoria;
+                      });
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -401,24 +554,57 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 return _buildAvaliacaoCard(avaliacao, isMinhas: true);
               }).toList(),
           ] else ...[
-            Text(
-              'Avaliações da Comunidade',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Avaliações da Comunidade',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _mostrarFiltroAvaliacoes,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.filter_list, color: Colors.grey[700], size: 18),
+                        if (_filtroAvaliacoesSelecionado != null && _filtroAvaliacoesSelecionado != 'Todas') ...[
+                          SizedBox(width: 4),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.red[600],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 16),
 
             if (_isLoading)
               Center(child: CircularProgressIndicator(color: Colors.red[600]))
-            else if (_avaliacoesComunidade.isEmpty)
+            else if (_filtrarAvaliacoes(_avaliacoesComunidade).isEmpty)
               Center(
                 child: Padding(
                   padding: EdgeInsets.all(40),
                   child: Text(
-                    'Nenhuma avaliação encontrada na comunidade',
+                    _filtroAvaliacoesSelecionado != null && _filtroAvaliacoesSelecionado != 'Todas'
+                        ? 'Nenhuma avaliação encontrada nesta categoria'
+                        : 'Nenhuma avaliação encontrada na comunidade',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -428,7 +614,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 ),
               )
             else
-              ..._avaliacoesComunidade.map((avaliacao) {
+              ..._filtrarAvaliacoes(_avaliacoesComunidade).map((avaliacao) {
                 return _buildAvaliacaoCard(avaliacao, isMinhas: false);
               }).toList(),
           ],
@@ -440,6 +626,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
   Widget _buildServicoFinalizadoCard(Map<String, dynamic> solicitacao) {
     String nomeServico = solicitacao['servico']?['nome'] ?? 'Serviço';
     String nomePrestador = solicitacao['prestador']?['nome'] ?? 'Prestador';
+    String prestadorCpfCnpj = solicitacao['prestador']?['cpfCnpj'] ?? '';
     String categoria = solicitacao['servico']?['categoria'] ?? '';
     double valor = solicitacao['servico']?['valor']?.toDouble() ?? 0.0;
     String valorFormatado = 'R\$ ${valor.toStringAsFixed(2)}';
@@ -535,12 +722,38 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
             ),
           ],
           SizedBox(height: 8),
-          Text(
-            'Prestador: $nomePrestador',
-            style: TextStyle(
-              color: Colors.grey[700],
-              fontSize: 13,
-            ),
+          Row(
+            children: [
+              Text(
+                'Prestador: $nomePrestador',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 13,
+                ),
+              ),
+              SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaPerfilPrestador(
+                        prestadorCpfCnpj: prestadorCpfCnpj,
+                        isMeuPerfil: false,
+                      ),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Ver perfil',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue[600],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 4),
           Row(
@@ -596,6 +809,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
 
   Widget _buildAvaliacaoCard(Map<String, dynamic> avaliacao, {required bool isMinhas}) {
     String nomeCliente = avaliacao['cliente']?['nome'] ?? 'Cliente';
+    String clienteCpfCnpj = avaliacao['cliente']?['cpfCnpj'] ?? '';
     String nomeServico = avaliacao['servico']?['nome'] ?? 'Serviço';
     String nomePrestador = avaliacao['prestador']?['nome'] ?? 'Prestador';
     String categoria = avaliacao['servico']?['categoria'] ?? '';
@@ -604,6 +818,8 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
     String tituloSolicitacao = avaliacao['tituloSolicitacao'] ?? '';
     String descricaoSolicitacao = avaliacao['descricaoSolicitacao'] ?? '';
     String avaliacaoId = avaliacao['id'] ?? '';
+
+    bool isMeuPerfil = clienteCpfCnpj == widget.clienteCpfCnpj;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -625,10 +841,23 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.red[100],
-                child: Icon(Icons.person, color: Colors.red[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaPerfilCliente(
+                        clienteCpfCnpj: clienteCpfCnpj,
+                        isMeuPerfil: isMeuPerfil,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.red[100],
+                  child: Icon(Icons.person, color: Colors.red[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
@@ -1306,24 +1535,57 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 return _buildSugestaoCard(sugestao, isMinhas: true);
               }).toList(),
           ] else ...[
-            Text(
-              'Sugestões da Comunidade',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Sugestões da Comunidade',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _mostrarFiltroSugestoes,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.filter_list, color: Colors.grey[700], size: 18),
+                        if (_filtroSugestoesSelecionado != null && _filtroSugestoesSelecionado != 'Todas') ...[
+                          SizedBox(width: 4),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.red[600],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 16),
 
             if (_isLoading)
               Center(child: CircularProgressIndicator(color: Colors.red[600]))
-            else if (_sugestoesComunidade.isEmpty)
+            else if (_filtrarSugestoes(_sugestoesComunidade).isEmpty)
               Center(
                 child: Padding(
                   padding: EdgeInsets.all(40),
                   child: Text(
-                    'Nenhuma sugestão encontrada na comunidade',
+                    _filtroSugestoesSelecionado != null && _filtroSugestoesSelecionado != 'Todas'
+                        ? 'Nenhuma sugestão encontrada nesta categoria'
+                        : 'Nenhuma sugestão encontrada na comunidade',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -1333,7 +1595,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 ),
               )
             else
-              ..._sugestoesComunidade.map((sugestao) {
+              ..._filtrarSugestoes(_sugestoesComunidade).map((sugestao) {
                 return _buildSugestaoCard(sugestao, isMinhas: false);
               }).toList(),
           ],
@@ -1611,24 +1873,57 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 return _buildDuvidaCard(duvida, isMinhas: true);
               }).toList(),
           ] else ...[
-            Text(
-              'Dúvidas da Comunidade',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Dúvidas da Comunidade',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _mostrarFiltroDuvidas,
+                  child: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.filter_list, color: Colors.grey[700], size: 18),
+                        if (_filtroDuvidasSelecionado != null && _filtroDuvidasSelecionado != 'Todas') ...[
+                          SizedBox(width: 4),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.red[600],
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 16),
 
             if (_isLoading)
               Center(child: CircularProgressIndicator(color: Colors.red[600]))
-            else if (_duvidasComunidade.isEmpty)
+            else if (_filtrarDuvidas(_duvidasComunidade).isEmpty)
               Center(
                 child: Padding(
                   padding: EdgeInsets.all(40),
                   child: Text(
-                    'Nenhuma dúvida encontrada na comunidade',
+                    _filtroDuvidasSelecionado != null && _filtroDuvidasSelecionado != 'Todas'
+                        ? 'Nenhuma dúvida encontrada nesta categoria'
+                        : 'Nenhuma dúvida encontrada na comunidade',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 16,
@@ -1638,7 +1933,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                 ),
               )
             else
-              ..._duvidasComunidade.map((duvida) {
+              ..._filtrarDuvidas(_duvidasComunidade).map((duvida) {
                 return _buildDuvidaCard(duvida, isMinhas: false);
               }).toList(),
           ],
@@ -1792,7 +2087,10 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
     String descricao = sugestao['descricao'] ?? '';
     String categoria = sugestao['categoriaServico'] ?? '';
     String nomeCliente = sugestao['cliente']?['nome'] ?? 'Cliente';
+    String clienteCpfCnpj = sugestao['cliente']?['cpfCnpj'] ?? '';
     String sugestaoId = sugestao['id'] ?? '';
+
+    bool isMeuPerfil = clienteCpfCnpj == widget.clienteCpfCnpj;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -1814,10 +2112,23 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.blue[100],
-                child: Icon(Icons.lightbulb, color: Colors.blue[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaPerfilCliente(
+                        clienteCpfCnpj: clienteCpfCnpj,
+                        isMeuPerfil: isMeuPerfil,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.blue[100],
+                  child: Icon(Icons.lightbulb, color: Colors.blue[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
@@ -2028,7 +2339,10 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
     String descricao = duvida['descricao'] ?? '';
     String categoria = duvida['categoriaServico'] ?? '';
     String nomeCliente = duvida['cliente']?['nome'] ?? 'Cliente';
+    String clienteCpfCnpj = duvida['cliente']?['cpfCnpj'] ?? '';
     String duvidaId = duvida['id'] ?? '';
+
+    bool isMeuPerfil = clienteCpfCnpj == widget.clienteCpfCnpj;
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -2050,10 +2364,23 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.orange[100],
-                child: Icon(Icons.help_outline, color: Colors.orange[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TelaPerfilCliente(
+                        clienteCpfCnpj: clienteCpfCnpj,
+                        isMeuPerfil: isMeuPerfil,
+                      ),
+                    ),
+                  );
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.orange[100],
+                  child: Icon(Icons.help_outline, color: Colors.orange[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
