@@ -96,6 +96,7 @@ class PrestadorComunidadeController {
                 if (item['cliente'] != null) {
                   Map<String, dynamic> cliente = Map<String, dynamic>.from(item['cliente'] as Map);
                   item['clienteNome'] = cliente['nome'] ?? 'Cliente';
+                  item['clienteCpfCnpj'] = cliente['cpfCnpj'] ?? '';
                 }
 
                 duvidas.add(item);
@@ -142,6 +143,7 @@ class PrestadorComunidadeController {
             if (item['cliente'] != null) {
               Map<String, dynamic> cliente = Map<String, dynamic>.from(item['cliente'] as Map);
               item['clienteNome'] = cliente['nome'] ?? 'Cliente';
+              item['clienteCpfCnpj'] = cliente['cpfCnpj'] ?? '';
             }
 
             item['categoria'] = item['categoriaServico'] ?? '';
