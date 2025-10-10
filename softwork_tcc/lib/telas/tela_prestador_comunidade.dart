@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/prestador_comunidade_controller.dart';
+import 'tela_perfil_cliente.dart';
 
 class TelaPrestadorComunidade extends StatefulWidget {
   final String prestadorNome;
@@ -123,17 +124,20 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
               margin: EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(30),
               ),
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
                   color: Colors.red[600],
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(30),
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.grey[600],
-                labelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                labelStyle: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
                 tabs: [
                   Tab(text: 'Avaliações'),
                   Tab(text: 'Sugestões'),
@@ -226,6 +230,7 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
 
   Widget _buildAvaliacaoCard(Map<String, dynamic> avaliacao) {
     String nomeCliente = avaliacao['cliente']?['nome'] ?? 'Cliente';
+    String clienteCpfCnpj = avaliacao['cliente']?['cpfCnpj'] ?? '';
     String nomeServico = avaliacao['servico']?['nome'] ?? 'Serviço';
     String categoria = avaliacao['servico']?['categoria'] ?? '';
     double nota = avaliacao['nota']?.toDouble() ?? 0.0;
@@ -253,10 +258,25 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.red[100],
-                child: Icon(Icons.person, color: Colors.red[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  if (clienteCpfCnpj.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TelaPerfilCliente(
+                          clienteCpfCnpj: clienteCpfCnpj,
+                          isMeuPerfil: false,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.red[100],
+                  child: Icon(Icons.person, color: Colors.red[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
@@ -330,6 +350,7 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
           if (comentario.isNotEmpty) ...[
             SizedBox(height: 8),
             Container(
+              width: double.infinity,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: Colors.amber[50],
@@ -419,6 +440,7 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
 
   Widget _buildSugestaoCard(Map<String, dynamic> sugestao) {
     String nomeCliente = sugestao['clienteNome'] ?? 'Cliente';
+    String clienteCpfCnpj = sugestao['clienteCpfCnpj'] ?? '';
     String titulo = sugestao['titulo'] ?? '';
     String descricao = sugestao['descricao'] ?? '';
     String categoria = sugestao['categoria'] ?? '';
@@ -443,10 +465,25 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.blue[100],
-                child: Icon(Icons.person, color: Colors.blue[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  if (clienteCpfCnpj.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TelaPerfilCliente(
+                          clienteCpfCnpj: clienteCpfCnpj,
+                          isMeuPerfil: false,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.blue[100],
+                  child: Icon(Icons.person, color: Colors.blue[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
@@ -564,6 +601,7 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
 
   Widget _buildDuvidaCard(Map<String, dynamic> duvida) {
     String nomeCliente = duvida['clienteNome'] ?? 'Cliente';
+    String clienteCpfCnpj = duvida['clienteCpfCnpj'] ?? '';
     String titulo = duvida['titulo'] ?? '';
     String descricao = duvida['descricao'] ?? '';
     String categoria = duvida['categoriaServico'] ?? '';
@@ -592,10 +630,25 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: Colors.orange[100],
-                child: Icon(Icons.person, color: Colors.orange[600], size: 20),
+              GestureDetector(
+                onTap: () {
+                  if (clienteCpfCnpj.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TelaPerfilCliente(
+                          clienteCpfCnpj: clienteCpfCnpj,
+                          isMeuPerfil: false,
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.orange[100],
+                  child: Icon(Icons.person, color: Colors.orange[600], size: 20),
+                ),
               ),
               SizedBox(width: 10),
               Expanded(
@@ -660,7 +713,7 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
           if (respondida && resposta.isNotEmpty) ...[
             SizedBox(height: 12),
             Container(
-              padding: EdgeInsets.all(10),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.green[50],
                 borderRadius: BorderRadius.circular(8),
@@ -671,60 +724,56 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Sua Resposta:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green[800],
-                          ),
+                      Icon(Icons.check_circle, color: Colors.green[600], size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'Resposta:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: Colors.green[700],
                         ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _mostrarDialogEditarResposta(duvidaId, titulo, resposta),
-                        child: Icon(Icons.edit, color: Colors.blue, size: 18),
-                      ),
-                      SizedBox(width: 8),
-                      GestureDetector(
-                        onTap: () => _confirmarExcluirResposta(duvidaId),
-                        child: Icon(Icons.delete, color: Colors.red, size: 18),
                       ),
                     ],
                   ),
-                  SizedBox(height: 4),
+                  SizedBox(height: 8),
                   Text(
                     resposta,
                     style: TextStyle(
-                      color: Colors.black87,
                       fontSize: 13,
+                      color: Colors.black87,
                       height: 1.4,
                     ),
                   ),
                 ],
               ),
             ),
-          ] else ...[
+          ],
+          if (!respondida) ...[
             SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _mostrarDialogResponder(duvidaId, titulo),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[600],
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+            ElevatedButton(
+              onPressed: () => _mostrarDialogResponder(duvidaId),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange[600],
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  'Responder Dúvida',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.reply, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Responder Dúvida',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ],
@@ -733,70 +782,65 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
     );
   }
 
-  void _mostrarDialogResponder(String duvidaId, String tituloDuvida) {
+  void _mostrarDialogResponder(String duvidaId) {
     _respostaController.clear();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            'Responder Dúvida',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tituloDuvida,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: _respostaController,
-                  maxLines: 5,
-                  maxLength: 200,
-                  decoration: InputDecoration(
-                    hintText: 'Digite sua resposta...',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.red[600]!),
-                    ),
-                  ),
-                ),
-              ],
+          title: Text('Responder Dúvida'),
+          content: TextField(
+            controller: _respostaController,
+            decoration: InputDecoration(
+              labelText: 'Sua resposta',
+              border: OutlineInputBorder(),
             ),
+            maxLines: 5,
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                _respostaController.clear();
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
             ),
             ElevatedButton(
-              onPressed: () => _confirmarResposta(duvidaId),
+              onPressed: () async {
+                if (_respostaController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Digite uma resposta'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controller.responderDuvida(
+                    duvidaId,
+                    _respostaController.text.trim(),
+                    widget.prestadorCpfCnpj,
+                  );
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Resposta enviada com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erro ao enviar resposta'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
+                backgroundColor: Colors.orange[600],
                 foregroundColor: Colors.white,
               ),
               child: Text('Enviar'),
@@ -805,261 +849,5 @@ class _TelaPrestadorComunidadeState extends State<TelaPrestadorComunidade> with 
         );
       },
     );
-  }
-
-  void _confirmarResposta(String duvidaId) {
-    if (_respostaController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Por favor, digite uma resposta'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    Navigator.pop(context);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmar Envio'),
-          content: Text('Deseja realmente enviar esta resposta?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _enviarResposta(duvidaId);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[600],
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _enviarResposta(String duvidaId) async {
-    try {
-      await _controller.responderDuvida(
-        duvidaId,
-        _respostaController.text.trim(),
-        widget.prestadorCpfCnpj,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Resposta enviada com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      _respostaController.clear();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao enviar resposta: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _mostrarDialogEditarResposta(String duvidaId, String tituloDuvida, String respostaAtual) {
-    _respostaController.text = respostaAtual;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Editar Resposta',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tituloDuvida,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  controller: _respostaController,
-                  maxLines: 5,
-                  maxLength: 200,
-                  decoration: InputDecoration(
-                    hintText: 'Digite sua resposta...',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.red[600]!),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _respostaController.clear();
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => _confirmarEdicaoResposta(duvidaId),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Salvar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _confirmarEdicaoResposta(String duvidaId) {
-    if (_respostaController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Por favor, digite uma resposta'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    Navigator.pop(context);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmar Edição'),
-          content: Text('Deseja realmente salvar as alterações?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _editarResposta(duvidaId);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _editarResposta(String duvidaId) async {
-    try {
-      await _controller.editarRespostaDuvida(
-        duvidaId,
-        _respostaController.text.trim(),
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Resposta editada com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      _respostaController.clear();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao editar resposta: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _confirmarExcluirResposta(String duvidaId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmar Exclusão'),
-          content: Text('Deseja realmente excluir esta resposta? A dúvida voltará ao status pendente.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar', style: TextStyle(color: Colors.grey[600])),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await _excluirResposta(duvidaId);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-              child: Text('Excluir'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _excluirResposta(String duvidaId) async {
-    try {
-      await _controller.excluirRespostaDuvida(duvidaId);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Resposta excluída com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao excluir resposta: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }
