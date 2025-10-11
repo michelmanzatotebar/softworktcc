@@ -27,6 +27,11 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
     filter: {"#": RegExp(r'[0-9]')},
   );
 
+  final cepMaskFormatter = MaskTextInputFormatter(
+    mask: '#####-###',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
   @override
   void initState() {
     super.initState();
@@ -149,8 +154,6 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
     );
   }
 
-
-
   void _mostrarDialogEditarTelefone() {
     final TextEditingController telefoneController = TextEditingController();
     telefoneController.text = _controller.getTelefone();
@@ -238,6 +241,181 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
     );
   }
 
+  void _mostrarDialogEditarLogradouro() {
+    final TextEditingController logradouroController = TextEditingController();
+    String logradouroAtual = _controller.getLogradouro();
+    logradouroController.text = logradouroAtual != 'Endereço não informado' ? logradouroAtual : '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Editar Logradouro',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: logradouroController,
+            maxLines: 5,
+            maxLength: 100,
+            decoration: InputDecoration(
+              hintText: 'Digite seu endereço',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                String novoLogradouro = logradouroController.text.trim();
+
+                if (novoLogradouro.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Logradouro não pode estar vazio'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controller.salvarLogradouro(widget.prestadorCpfCnpj, novoLogradouro);
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Logradouro atualizado com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString().replaceAll('Exception: ', '')),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Salvar',
+                style: TextStyle(
+                  color: Colors.red[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogEditarCep() {
+    final TextEditingController cepController = TextEditingController();
+    String cepAtual = _controller.getCep();
+    cepController.text = cepAtual != 'CEP não informado' ? cepAtual : '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Editar CEP',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: TextField(
+            controller: cepController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [cepMaskFormatter],
+            decoration: InputDecoration(
+              hintText: '00000-000',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.red[600]!, width: 2),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                String novoCep = cepController.text.trim();
+
+                if (novoCep.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('CEP não pode estar vazio'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  await _controller.salvarCep(widget.prestadorCpfCnpj, novoCep);
+
+                  Navigator.pop(context);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('CEP atualizado com sucesso!'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(e.toString().replaceAll('Exception: ', '')),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Salvar',
+                style: TextStyle(
+                  color: Colors.red[600],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -514,6 +692,22 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
                     ),
                   ),
                 ),
+                if (widget.isMeuPerfil)
+                  GestureDetector(
+                    onTap: _mostrarDialogEditarTelefone,
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        color: Colors.red[600],
+                        size: 16,
+                      ),
+                    ),
+                  ),
               ],
             ),
             SizedBox(height: 12),
@@ -531,6 +725,54 @@ class _TelaPerfilPrestadorState extends State<TelaPerfilPrestador> {
                     ),
                   ),
                 ),
+                if (widget.isMeuPerfil)
+                  GestureDetector(
+                    onTap: _mostrarDialogEditarLogradouro,
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        color: Colors.red[600],
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.pin_drop_outlined, color: Colors.grey[600], size: 18),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _controller.getCep(),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                ),
+                if (widget.isMeuPerfil)
+                  GestureDetector(
+                    onTap: _mostrarDialogEditarCep,
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        color: Colors.red[600],
+                        size: 16,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ],

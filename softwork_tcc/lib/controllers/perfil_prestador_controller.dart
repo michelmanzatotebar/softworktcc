@@ -156,6 +156,19 @@ class PerfilPrestadorController {
     return dadosPrestador?['logradouro']?.toString() ?? 'Endereço não informado';
   }
 
+  String getCep() {
+    String cep = dadosPrestador?['cep']?.toString() ?? '';
+    if (cep.isEmpty) {
+      return 'CEP não informado';
+    }
+
+    String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
+    if (cepLimpo.length == 8) {
+      return '${cepLimpo.substring(0, 5)}-${cepLimpo.substring(5)}';
+    }
+    return cep;
+  }
+
   String getBiografia() {
     String? biografia = dadosPrestador?['biografia']?.toString();
     if (biografia != null && biografia.isNotEmpty) {
@@ -274,6 +287,54 @@ class PerfilPrestadorController {
     } catch (e) {
       print("Erro ao salvar telefone: $e");
       throw Exception("Erro ao salvar telefone");
+    }
+  }
+
+  Future<void> salvarLogradouro(String cpfCnpj, String logradouro) async {
+    try {
+      if (logradouro.trim().isEmpty) {
+        throw Exception("Logradouro não pode estar vazio");
+      }
+
+      await _ref.child('usuarios/$cpfCnpj').update({
+        'logradouro': logradouro.trim(),
+      });
+
+      if (dadosPrestador != null) {
+        dadosPrestador!['logradouro'] = logradouro.trim();
+      }
+
+      print("Logradouro salvo com sucesso");
+    } catch (e) {
+      print("Erro ao salvar logradouro: $e");
+      throw Exception("Erro ao salvar logradouro");
+    }
+  }
+
+  Future<void> salvarCep(String cpfCnpj, String cep) async {
+    try {
+      String cepLimpo = cep.replaceAll(RegExp(r'[^\d]'), '');
+
+      if (cepLimpo.isEmpty) {
+        throw Exception("CEP não pode estar vazio");
+      }
+
+      if (cepLimpo.length != 8) {
+        throw Exception("CEP inválido");
+      }
+
+      await _ref.child('usuarios/$cpfCnpj').update({
+        'cep': cepLimpo,
+      });
+
+      if (dadosPrestador != null) {
+        dadosPrestador!['cep'] = cepLimpo;
+      }
+
+      print("CEP salvo com sucesso");
+    } catch (e) {
+      print("Erro ao salvar CEP: $e");
+      throw Exception("Erro ao salvar CEP");
     }
   }
 
