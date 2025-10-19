@@ -313,7 +313,7 @@ class _TelaClienteComunidadeState extends State<TelaClienteComunidade> with Sing
                       padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(10),
+                        shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.arrow_back,
