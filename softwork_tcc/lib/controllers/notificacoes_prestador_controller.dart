@@ -25,7 +25,7 @@ class NotificacoesPrestadorController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+//carrega notificacoes do prestador
   Future<void> carregarNotificacoesPrestador(String prestadorCpfCnpj) async {
     try {
       _setLoading(true);
@@ -97,7 +97,7 @@ class NotificacoesPrestadorController {
       _notificacoesSubscription = null;
     }
   }
-
+//apos abrir determina como lida
   Future<void> marcarTodasComoLidas(String prestadorCpfCnpj) async {
     try {
       _setLoading(true);
@@ -164,15 +164,11 @@ class NotificacoesPrestadorController {
         return 'Notificação';
     }
   }
-
+//definir cor do staus
   Color getCorTipo(String? tipo) {
     switch (tipo?.toLowerCase()) {
       case 'nova_solicitacao':
         return Colors.orange;
-      case 'solicitacao_aceita':
-        return Colors.green;
-      case 'solicitacao_concluida':
-        return Colors.blue;
       default:
         return Colors.grey;
     }

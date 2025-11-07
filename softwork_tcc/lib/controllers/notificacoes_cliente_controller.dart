@@ -25,7 +25,7 @@ class NotificacoesClienteController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+ //carrega notificações do cliente
   Future<void> carregarNotificacoesCliente(String clienteCpfCnpj) async {
     try {
       _setLoading(true);
@@ -96,7 +96,7 @@ class NotificacoesClienteController {
       _notificacoesSubscription = null;
     }
   }
-
+//após abrir a tela de notificação marca como liga
   Future<void> marcarTodasComoLidas(String clienteCpfCnpj) async {
     try {
       _setLoading(true);
@@ -169,7 +169,7 @@ class NotificacoesClienteController {
         return 'Atualização';
     }
   }
-
+//determina cor do status
   Color getCorTipo(String? tipoStatus) {
     switch (tipoStatus?.toLowerCase()) {
       case 'aceita':

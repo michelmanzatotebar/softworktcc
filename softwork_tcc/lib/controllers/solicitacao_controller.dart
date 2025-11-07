@@ -3,7 +3,7 @@ import '../controllers/notificacao_controller.dart';
 
 class SolicitacaoController {
   final DatabaseReference _ref = FirebaseDatabase.instance.ref();
-
+// Cria uma nova solicitação no Firebase
   Future<Map<String, dynamic>> criarSolicitacao({
     required String titulo,
     required String descricao,
@@ -196,7 +196,7 @@ class SolicitacaoController {
       throw Exception("Erro ao carregar todas as solicitações: ${e.toString()}");
     }
   }
-
+// Formata data ISO para formato brasileiro (DD/MM/AAAA)
   String formatarData(String dataISO) {
     try {
       DateTime data = DateTime.parse(dataISO);

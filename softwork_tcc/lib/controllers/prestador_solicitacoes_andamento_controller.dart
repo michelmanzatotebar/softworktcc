@@ -26,7 +26,7 @@ class PrestadorSolicitacoesAndamentoController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+// Carrega e escuta mudanças nas solicitações do prestador em tempo real
   Future<void> carregarSolicitacoesPrestador(String prestadorCpfCnpj) async {
     try {
       _setLoading(true);
@@ -96,7 +96,7 @@ class PrestadorSolicitacoesAndamentoController {
       _solicitacoesSubscription = null;
     }
   }
-
+// Atualiza status da solicitação e notifica o cliente
   Future<void> atualizarStatusSolicitacao(String solicitacaoId, String novoStatus) async {
     try {
       _setLoading(true);
@@ -143,7 +143,7 @@ class PrestadorSolicitacoesAndamentoController {
         return status.toLowerCase().replaceAll(' ', '_');
     }
   }
-
+// Formata texto do status para exibição
   String formatarStatus(String status) {
     switch (status.toLowerCase()) {
       case 'concluída':
@@ -170,14 +170,14 @@ class PrestadorSolicitacoesAndamentoController {
       return 'Data inválida';
     }
   }
-
+// Formata valor para moeda brasileira
   String formatarValor(dynamic valor) {
     if (valor != null) {
       return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
     }
     return 'R\$ 0,00';
   }
-
+// Retorna cor correspondente ao status
   Color getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pendente':
@@ -198,7 +198,7 @@ class PrestadorSolicitacoesAndamentoController {
         return const Color(0xFF757575);
     }
   }
-
+// Retorna opções de status disponíveis baseado no status atual
   List<String> getOpcoesStatus(String statusAtual) {
     switch (statusAtual.toLowerCase()) {
       case 'aceita':

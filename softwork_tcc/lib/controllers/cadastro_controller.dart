@@ -11,7 +11,7 @@ class CadastroController {
   Function(bool)? onLoadingChanged;
   Function(String, bool)? onShowMessage;
   Function()? onCadastroSucesso;
-
+//mascara para cpf, telefone, cep, idade
   static final MaskTextInputFormatter cepMaskFormatter = MaskTextInputFormatter(
     mask: '#####-###',
     filter: {"#": RegExp(r'[0-9]')},
@@ -78,7 +78,7 @@ class CadastroController {
 
     return resultado.text;
   }
-
+// Realiza o cadastro completo do usuário no Firebase
   Future<void> cadastrar({
     required String email,
     required String uid,
@@ -161,7 +161,7 @@ class CadastroController {
       _setLoading(false);
     }
   }
-
+// Faz logout do usuário e retorna para tela de login
   Future<void> voltarParaLogin() async {
     try {
       await FirebaseAuth.instance.signOut();

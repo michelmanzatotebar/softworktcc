@@ -19,7 +19,7 @@ class ClienteNotificacoesController {
     onContadorChanged = contadorCallback;
     onError = errorCallback;
   }
-
+// Inicia escuta em tempo real das notificações do cliente
   Future<void> iniciarListenerNotificacoes(String clienteCpfCnpj) async {
     try {
       print("=== INICIANDO LISTENER DE NOTIFICAÇÕES DO CLIENTE ===");
@@ -87,7 +87,7 @@ class ClienteNotificacoesController {
   }
 
   DateTime? _ultimaNotificacaoMostrada;
-
+// Verifica se notificação é nova e exibe notificação local
   Future<void> _verificarSeENovaNotificacao(Map<String, dynamic> notificacao, String clienteCpfCnpj) async {
     try {
       DateTime timestampNotificacao = DateTime.parse(notificacao['timestamp']);
@@ -113,7 +113,7 @@ class ClienteNotificacoesController {
       print("Erro ao verificar nova notificação: $e");
     }
   }
-
+// Marca notificação específica como lida no Firebase
   Future<void> marcarNotificacaoComoLida(String clienteCpfCnpj, String notificacaoId) async {
     try {
       await _ref.child('usuarios/$clienteCpfCnpj/notificacoes/$notificacaoId').update({
@@ -124,7 +124,7 @@ class ClienteNotificacoesController {
       print("Erro ao marcar notificação como lida: $e");
     }
   }
-
+// Marca todas as notificações não lidas como lidas
   Future<void> marcarTodasComoLidas(String clienteCpfCnpj) async {
     try {
       final snapshot = await _ref.child('usuarios/$clienteCpfCnpj/notificacoes').get();

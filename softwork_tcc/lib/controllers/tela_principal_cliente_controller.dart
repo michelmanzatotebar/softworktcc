@@ -18,7 +18,7 @@ class TelaPrincipalClienteController {
     onError = errorCallback;
     onLoadingChanged = loadingCallback;
   }
-
+// Carrega serviços pesquisados recentemente pelo cliente
   Future<void> carregarServicosRecentes(String cpfCnpj) async {
     try {
       onLoadingChanged?.call(true);
@@ -33,7 +33,7 @@ class TelaPrincipalClienteController {
       print("Erro ao carregar serviços recentes: $e");
     }
   }
-
+// Adiciona serviço à lista de recentes
   Future<void> adicionarServicoRecente(Map<String, dynamic> servico, String cpfCnpj) async {
     try {
       List<Map<String, dynamic>> servicosRecentes = [];
@@ -48,7 +48,7 @@ class TelaPrincipalClienteController {
       print("Erro ao salvar serviço recente: $e");
     }
   }
-
+// Limpa lista de serviços recentes
   Future<void> limparServicosRecentes(String cpfCnpj) async {
     try {
       _servicosRecentesPorCliente[cpfCnpj] = [];

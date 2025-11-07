@@ -14,7 +14,7 @@ class TelaDetalhesSolicitacaoPrestadorController {
   VoidCallback? onUpdateUI;
   Function(String, bool)? onShowMessage;
   VoidCallback? onNavigateBack;
-
+// Inicializa os dados da solicitação e busca informações do cliente
   Future<void> inicializarDados(
       Map<String, dynamic> solicitacao, {
         VoidCallback? updateUI,
@@ -48,7 +48,7 @@ class TelaDetalhesSolicitacaoPrestadorController {
     }
     return dados ?? {};
   }
-
+// Busca dados completos do cliente no Firebase usando CPF/CNPJ
   Future<void> _buscarDadosClienteCompletos() async {
     try {
       isLoading = true;
@@ -127,20 +127,20 @@ class TelaDetalhesSolicitacaoPrestadorController {
   }
 
   String? get categoria => servico?['categoria']?.toString();
-
+// Retorna nome do cliente
   String getClienteNome() {
     return dadosClienteCompletos?['nome']?.toString() ??
         cliente?['nome']?.toString() ?? 'N/A';
   }
-
+// Retorna idade do cliente
   String getClienteIdade() {
     return dadosClienteCompletos?['idade']?.toString() ?? 'N/A';
   }
-
+// Retorna email do cliente
   String getClienteEmail() {
     return dadosClienteCompletos?['email']?.toString() ?? 'N/A';
   }
-
+// Retorna telefone do cliente formatado
   String getClienteTelefone() {
     String telefone = dadosClienteCompletos?['telefone']?.toString() ?? 'N/A';
     if (telefone != 'N/A' && telefone.length >= 10) {
@@ -157,7 +157,7 @@ class TelaDetalhesSolicitacaoPrestadorController {
   String getClienteLogradouro() {
     return dadosClienteCompletos?['logradouro']?.toString() ?? 'N/A';
   }
-
+// Retorna CEP do cliente formatado
   String getClienteCep() {
     String cep = dadosClienteCompletos?['cep']?.toString() ?? 'N/A';
     if (cep != 'N/A' && cep.length >= 8) {
@@ -211,7 +211,7 @@ class TelaDetalhesSolicitacaoPrestadorController {
     }
     return 'R\$ 0,00';
   }
-
+// Aceita a solicitação e atualiza status no Firebase
   Future<void> aceitarSolicitacao() async {
     if (dadosSolicitacao == null) return;
 
@@ -249,7 +249,7 @@ class TelaDetalhesSolicitacaoPrestadorController {
       onUpdateUI?.call();
     }
   }
-
+// Recusa a solicitação e atualiza status no Firebase
   Future<void> recusarSolicitacao() async {
     if (dadosSolicitacao == null) return;
 

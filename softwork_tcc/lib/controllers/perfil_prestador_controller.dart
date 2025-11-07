@@ -21,7 +21,7 @@ class PerfilPrestadorController {
     onDataLoaded = dataCallback;
     onError = errorCallback;
   }
-
+// Carrega dados do prestador, serviços e avaliações
   Future<void> carregarDadosPrestador(String cpfCnpj) async {
     try {
       isLoading = true;
@@ -41,7 +41,7 @@ class PerfilPrestadorController {
       onError?.call("Erro ao carregar dados do prestador");
     }
   }
-
+// Busca dados do usuário no Firebase
   Future<void> _buscarDadosUsuario(String cpfCnpj) async {
     try {
       final snapshot = await _ref.child('usuarios/$cpfCnpj').get();
@@ -59,7 +59,7 @@ class PerfilPrestadorController {
       throw e;
     }
   }
-
+// Busca todos os serviços cadastrados pelo prestador
   Future<void> _buscarServicosPrestador(String cpfCnpj) async {
     try {
       final snapshot = await _ref.child('servicos').get();
@@ -89,7 +89,7 @@ class PerfilPrestadorController {
       throw e;
     }
   }
-
+// Busca todas as avaliações recebidas pelo prestador
   Future<void> _buscarAvaliacoesPrestador(String cpfCnpj) async {
     try {
       final snapshot = await _ref.child('avaliacao').get();

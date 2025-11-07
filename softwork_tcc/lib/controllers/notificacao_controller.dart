@@ -121,7 +121,7 @@ class NotificacaoController {
       print("Erro ao salvar token: $e");
     }
   }
-
+// Envia notificação ao prestador sobre nova solicitação
   static Future<void> notificarNovaSolicitacao({
     required String prestadorCpfCnpj,
     required String tituloSolicitacao,
@@ -147,7 +147,7 @@ class NotificacaoController {
       print("Erro ao enviar notificação: $e");
     }
   }
-
+// Envia notificação ao cliente sobre mudança de status
   static Future<void> notificarMudancaStatus({
     required String clienteCpfCnpj,
     required String tituloSolicitacao,
@@ -181,7 +181,7 @@ class NotificacaoController {
       print("Erro ao notificar mudança de status: $e");
     }
   }
-
+// Gera título da notificação baseado no tipo de status
   static String _gerarTituloStatus(String tipoStatus) {
     switch (tipoStatus.toLowerCase()) {
       case 'aceita':
@@ -200,7 +200,7 @@ class NotificacaoController {
         return 'Atualização de Solicitação';
     }
   }
-
+// Gera mensagem da notificação baseado no status
   static String _gerarMensagemStatus(String tipoStatus, String tituloSolicitacao, String nomePrestador) {
     String statusTexto = tipoStatus.toLowerCase().replaceAll('_', ' ');
 

@@ -37,7 +37,7 @@ class ClienteComunidadeController {
     _minhasDuvidasCallback = minhasDuvidasCallback;
     _duvidasComunidadeCallback = duvidasComunidadeCallback;
   }
-
+// Carrega solicitações finalizadas do cliente para avaliação
   void carregarSolicitacoesFinalizadas(String clienteCpfCnpj) {
     _loadingCallback?.call(true);
 
@@ -63,7 +63,7 @@ class ClienteComunidadeController {
       _loadingCallback?.call(false);
     });
   }
-
+// Carrega avaliações criadas pelo cliente
   void carregarMinhasAvaliacoes(String clienteCpfCnpj) {
     _loadingCallback?.call(true);
 
@@ -126,7 +126,7 @@ class ClienteComunidadeController {
       _loadingCallback?.call(false);
     });
   }
-
+// Cria nova avaliação para um prestador
   Future<void> salvarAvaliacao({
     required Map<String, dynamic> solicitacao,
     required double nota,
@@ -265,7 +265,7 @@ class ClienteComunidadeController {
       _loadingCallback?.call(false);
     });
   }
-
+// Cria nova sugestão na comunidade
   Future<void> salvarSugestao({
     required String clienteNome,
     required String clienteCpfCnpj,
@@ -299,7 +299,7 @@ class ClienteComunidadeController {
       _loadingCallback?.call(false);
     }
   }
-
+// Cria nova dúvida na comunidade
   Future<void> salvarDuvida({
     required String clienteNome,
     required String clienteCpfCnpj,

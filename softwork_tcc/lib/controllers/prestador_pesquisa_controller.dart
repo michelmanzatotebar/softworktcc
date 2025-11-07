@@ -16,7 +16,7 @@ class PrestadorPesquisaController {
     onResultsChanged = resultsCallback;
     onError = errorCallback;
   }
-
+// Carrega os 10 últimos prestadores cadastrados
   Future<void> carregarUltimosPrestadores() async {
     print("Carregando os 10 últimos prestadores cadastrados");
 
@@ -36,7 +36,7 @@ class PrestadorPesquisaController {
       print("Erro ao carregar últimos prestadores: $e");
     }
   }
-
+// Pesquisa prestadores por nome
   Future<void> pesquisarPrestadores(String query) async {
     print("Pesquisando prestadores: $query");
 

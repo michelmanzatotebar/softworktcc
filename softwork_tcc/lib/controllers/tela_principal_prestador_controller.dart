@@ -26,7 +26,7 @@ class TelaPrincipalPrestadorController {
     onSolicitacoesLoaded = solicitacoesCallback;
     onError = errorCallback;
   }
-
+// Carrega solicitações pendentes do prestador em tempo real
   Future<void> carregarSolicitacoesPrestador(String prestadorCpfCnpj) async {
     try {
       isLoading = true;
