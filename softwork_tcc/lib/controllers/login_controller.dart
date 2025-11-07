@@ -31,7 +31,7 @@ class LoginController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+// Verifica se há usuário logado e redireciona automaticamente
   Future<void> verificarUsuarioLogado() async {
     try {
       User? currentUser = _auth.currentUser;
@@ -51,7 +51,7 @@ class LoginController {
       print("Erro durante verificação/logout: $e");
     }
   }
-
+// Realiza login com email e senha no Firebase
   Future<void> loginComEmailSenha(String email, String senha) async {
     _setLoading(true);
 
@@ -143,7 +143,7 @@ class LoginController {
       _setLoading(false);
     }
   }
-
+// Prepara criação de conta com email e senha
   Future<void> criarContaComEmailSenha(String email, String senha) async {
     if (email.trim().isEmpty || senha.isEmpty) {
       onShowMessage?.call('Email e senha são obrigatórios', false);
@@ -167,7 +167,7 @@ class LoginController {
         ''
     );
   }
-
+// Realiza login usando conta Google
   Future<void> loginComGoogle() async {
     _setLoading(true);
 
@@ -234,7 +234,7 @@ class LoginController {
       _setLoading(false);
     }
   }
-
+// Verifica se cadastro do usuário está completo no banco
   Future<void> _verificarCadastroCompleto(User user) async {
     try {
       print("DEBUG VERIFICAR CADASTRO");

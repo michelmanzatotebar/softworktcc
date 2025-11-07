@@ -21,7 +21,7 @@ class PrestadorComunidadeController {
     onDuvidasChanged = duvidasCallback;
     onSugestoesChanged = sugestoesCallback;
   }
-
+// Busca avaliações recebidas pelo prestador em tempo real
   void buscarAvaliacoesPrestador(String prestadorCpfCnpj) {
     _avaliacoesSubscription?.cancel();
 
@@ -55,7 +55,7 @@ class PrestadorComunidadeController {
       }
     });
   }
-
+// Busca dúvidas das categorias que o prestador atende
   void buscarDuvidasPorCategorias(String prestadorCpfCnpj) async {
     try {
       final servicosSnapshot = await _database.child('servicos').get();
@@ -126,7 +126,7 @@ class PrestadorComunidadeController {
       print('Erro ao buscar dúvidas: $e');
     }
   }
-
+// Busca sugestoes das categorias que o prestador atende
   void buscarSugestoesComunidade() {
     _sugestoesSubscription?.cancel();
 
@@ -163,7 +163,7 @@ class PrestadorComunidadeController {
       }
     });
   }
-
+// Adiciona resposta a uma duvida da comunidade
   Future<void> responderDuvida(String duvidaId, String resposta, String prestadorCpfCnpj) async {
     try {
       await _database.child('avaliacao').child(duvidaId).update({

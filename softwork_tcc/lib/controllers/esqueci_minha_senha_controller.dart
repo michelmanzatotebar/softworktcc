@@ -24,7 +24,7 @@ class EsqueciMinhaSenhaController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+// Envia email para redefinição de senha via Firebase Auth
   Future<void> enviarEmailRedefinirSenha(String email) async {
     if (email.trim().isEmpty) {
       onShowMessage?.call('Email é obrigatório', false);

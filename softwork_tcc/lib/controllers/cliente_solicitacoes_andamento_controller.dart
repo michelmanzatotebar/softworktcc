@@ -26,7 +26,7 @@ class ClienteSolicitacoesAndamentoController {
     _isLoading = loading;
     onLoadingChanged?.call(_isLoading);
   }
-
+// Carrega e escuta solicitações do cliente em tempo real
   Future<void> carregarSolicitacoesCliente(String clienteCpfCnpj) async {
     try {
       _setLoading(true);
@@ -95,7 +95,7 @@ class ClienteSolicitacoesAndamentoController {
       _solicitacoesSubscription = null;
     }
   }
-
+// Cancela e remove solicitação do Firebase
   Future<void> cancelarSolicitacao(String solicitacaoId) async {
     try {
       _setLoading(true);
@@ -110,7 +110,7 @@ class ClienteSolicitacoesAndamentoController {
       _setLoading(false);
     }
   }
-
+// Define se serviço foi finalizado ou volta para andamento
   Future<void> definirConclusaoSolicitacao(String solicitacaoId, bool confirmado) async {
     try {
       _setLoading(true);
@@ -146,7 +146,7 @@ class ClienteSolicitacoesAndamentoController {
       _setLoading(false);
     }
   }
-
+// Formata texto do status para exibição
   String formatarStatus(String status) {
     switch (status.toLowerCase()) {
       case 'pendente':
@@ -217,7 +217,7 @@ class ClienteSolicitacoesAndamentoController {
   bool podeCancelar(String status) {
     return status.toLowerCase() == 'pendente';
   }
-
+// Verifica se cliente pode definir conclusão
   bool podeDefinirConclusao(String status) {
     return status.toLowerCase() == 'concluída';
   }

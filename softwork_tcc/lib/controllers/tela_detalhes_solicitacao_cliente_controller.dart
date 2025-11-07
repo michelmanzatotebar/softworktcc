@@ -21,7 +21,7 @@ class TelaDetalhesSolicitacaoController {
 
   String? clienteNome;
   String? clienteCpfCnpj;
-
+// Inicializa os dados da solicitação e busca informações do prestador
   Future<void> inicializarDados(
       Map<String, dynamic> solicitacao, {
         VoidCallback? updateUI,
@@ -62,7 +62,7 @@ class TelaDetalhesSolicitacaoController {
     }
     return dados ?? {};
   }
-
+// Busca dados completos do prestador no Firebase usando CPF/CNPJ
   Future<void> _buscarDadosPrestadorCompletos() async {
     try {
       isLoading = true;
@@ -131,20 +131,20 @@ class TelaDetalhesSolicitacaoController {
   String? get statusSolicitacao => dadosSolicitacao?['statusSolicitacao']?.toString();
 
   String? get categoria => servico?['categoria']?.toString();
-
+// Retorna nome do prestador
   String getPrestadorNome() {
     return dadosPrestadorCompletos?['nome']?.toString() ??
         prestador?['nome']?.toString() ?? 'N/A';
   }
-
+// Retorna idade do prestador
   String getPrestadorIdade() {
     return dadosPrestadorCompletos?['idade']?.toString() ?? 'N/A';
   }
-
+// Retorna email do prestador
   String getPrestadorEmail() {
     return dadosPrestadorCompletos?['email']?.toString() ?? 'N/A';
   }
-
+// Retorna telefone do prestador formatado
   String getPrestadorTelefone() {
     String telefone = dadosPrestadorCompletos?['telefone']?.toString() ?? 'N/A';
     if (telefone != 'N/A' && telefone.length >= 10) {
@@ -172,12 +172,12 @@ class TelaDetalhesSolicitacaoController {
     }
     return cep;
   }
-
+// Ativa modo de edição do título
   void iniciarEdicaoTitulo() {
     editandoTitulo = true;
     onUpdateUI?.call();
   }
-
+// Valida e salva o novo título da solicitação
   void salvarTitulo() {
     String novoTitulo = tituloEditController.text.trim();
 
@@ -197,7 +197,7 @@ class TelaDetalhesSolicitacaoController {
     editandoTitulo = false;
     onUpdateUI?.call();
   }
-
+// Cancela edição do título e restaura valor anterior
   void cancelarEdicaoTitulo() {
     tituloEditController.text = titulo ?? '';
     editandoTitulo = false;
@@ -239,7 +239,7 @@ class TelaDetalhesSolicitacaoController {
     if (dataISO == null) return 'N/A';
     return _solicitacaoController.formatarData(dataISO);
   }
-
+// Formata valor numérico para moeda brasileira (R$)
   String formatarValor(dynamic valor) {
     if (valor == null) return 'R\$ 0,00';
 
@@ -258,7 +258,7 @@ class TelaDetalhesSolicitacaoController {
       return 'R\$ 0,00';
     }
   }
-
+// Constrói linha de informação com label e valor
   Widget buildInfoRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.only(bottom: 12),
@@ -289,7 +289,7 @@ class TelaDetalhesSolicitacaoController {
       ),
     );
   }
-
+// Confirma e cria a solicitação no Firebase
   Future<void> confirmarSolicitacao() async {
     if (dadosSolicitacao == null) return;
 

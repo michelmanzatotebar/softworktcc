@@ -19,7 +19,7 @@ class ServicosPesquisaController {
     onCategoriasChanged = categoriasCallback;
     onError = errorCallback;
   }
-
+// Carrega os 10 últimos serviços cadastrados
   Future<void> carregarUltimosServicos() async {
     print("Carregando os 10 últimos serviços cadastrados");
 
@@ -39,7 +39,7 @@ class ServicosPesquisaController {
       print("Erro ao carregar últimos serviços: $e");
     }
   }
-
+// Pesquisa serviços por nome e/ou categoria
   Future<void> pesquisarServicos(String query, {String? categoriaFiltro}) async {
     print("Pesquisando serviços: $query | Categoria: $categoriaFiltro");
 
@@ -64,7 +64,7 @@ class ServicosPesquisaController {
       print("Erro na pesquisa: $e");
     }
   }
-
+// Carrega lista de categorias disponíveis
   Future<void> carregarCategorias() async {
     try {
       List<String> categorias = await _buscarCategoriasNoFirebase();
@@ -184,7 +184,7 @@ class ServicosPesquisaController {
     print("Categorias encontradas: ${categorias.length}");
     return categorias;
   }
-
+// Carrega lista de categorias disponíveis
   Future<Map<String, dynamic>?> buscarServicoPorId(String servicoId) async {
     try {
       final snapshot = await _ref.child('servicos/$servicoId').get();

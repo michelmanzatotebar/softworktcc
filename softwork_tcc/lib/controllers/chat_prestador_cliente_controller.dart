@@ -47,7 +47,7 @@ class ChatPrestadorClienteController {
     onUpdateUI = updateUICallback;
     onTypingChanged = typingCallback;
   }
-
+// Inicializa chat entre cliente e prestador para uma solicitação
   Future<void> inicializarChat({
     required Map<String, dynamic> solicitacao,
     required String cpfUsuarioAtual,
@@ -107,7 +107,7 @@ class ChatPrestadorClienteController {
       print("Erro ao inicializar chat: $e");
     }
   }
-
+// Cria objeto de usuário para o chat
   ChatUser _criarUsuario({required String cpf, required String nome}) {
     List<String> partesNome = nome.trim().split(' ');
     String firstName = partesNome.isNotEmpty ? partesNome[0] : nome;
@@ -119,7 +119,7 @@ class ChatPrestadorClienteController {
       lastName: lastName,
     );
   }
-
+// Registra usuários no banco de dados do chat
   Future<void> _registrarUsuarios() async {
     try {
       await _ref.child('chat/users/${_usuarioAtual!.id}').set(_usuarioAtual!.toMap());
@@ -132,7 +132,7 @@ class ChatPrestadorClienteController {
       print("Erro ao registrar usuários: $e");
     }
   }
-
+// Busca sala de chat existente ou cria nova sala
   Future<void> _obterOuCriarRoom() async {
     try {
       print("=== OBTENDO/CRIANDO ROOM ===");
@@ -161,7 +161,7 @@ class ChatPrestadorClienteController {
       throw Exception("Erro ao criar conversa: $e");
     }
   }
-
+// Escuta mensagens em tempo real do Firebase
   void _escutarMensagens() {
     if (_roomId != null) {
       _ref.child('chat/messages/$_roomId').orderByChild('createdAt').onValue.listen(
@@ -196,7 +196,7 @@ class ChatPrestadorClienteController {
       );
     }
   }
-
+// Escuta indicador de digitação do outro usuário
   void _escutarIndicadorDigitacao() {
     if (_roomId != null && _outroUsuario != null) {
       _ref.child('chat/typing/$_roomId/${_outroUsuario!.id}').onValue.listen(
@@ -232,7 +232,7 @@ class ChatPrestadorClienteController {
       print("Erro ao marcar mensagens como lidas: $e");
     }
   }
-
+// Envia mensagem de texto para o chat
   Future<void> enviarMensagem(String texto) async {
     if (_roomId == null || texto.trim().isEmpty || _usuarioAtual == null) return;
 

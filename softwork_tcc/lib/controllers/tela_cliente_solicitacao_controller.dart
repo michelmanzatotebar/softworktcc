@@ -14,7 +14,7 @@ class TelaClienteSolicitacaoController {
 
   String? clienteNome;
   String? clienteCpfCnpj;
-
+// Configura dados do cliente na solicitação
   void configurarDadosCliente({
     required String nome,
     required String cpfCnpj,
@@ -22,7 +22,7 @@ class TelaClienteSolicitacaoController {
     clienteNome = nome;
     clienteCpfCnpj = cpfCnpj;
   }
-
+// Carrega informações completas do prestador do Firebase
   Future<void> carregarInformacoesPrestador(
       Map<String, dynamic> servico, {
         required VoidCallback onComplete,
@@ -47,7 +47,7 @@ class TelaClienteSolicitacaoController {
     isLoading = false;
     onComplete();
   }
-
+// Formata número de telefone para padrão brasileiro
   String formatarTelefone(String telefone) {
     if (telefone.length == 11) {
       return '(${telefone.substring(0, 2)}) ${telefone.substring(2, 7)}-${telefone.substring(7)}';
@@ -69,7 +69,7 @@ class TelaClienteSolicitacaoController {
     }
     return 'R\$ 0,00';
   }
-
+// Cria dados da solicitação e navega para tela de revisão
   void revisarSolicitacao(BuildContext context) {
     _criarDadosSolicitacao();
 
@@ -82,7 +82,7 @@ class TelaClienteSolicitacaoController {
       ),
     );
   }
-
+// Monta estrutura de dados da solicitação
   void _criarDadosSolicitacao() {
     dadosSolicitacao = {
       'id': DateTime.now().millisecondsSinceEpoch,

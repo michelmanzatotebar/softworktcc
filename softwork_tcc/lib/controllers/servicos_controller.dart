@@ -87,7 +87,7 @@ class ServicosController {
 
     return null;
   }
-
+// Cria novo serviço no Firebase
   Future<Map<String, dynamic>> cadastrarServico({
     required String nome,
     required String descricao,
@@ -130,7 +130,7 @@ class ServicosController {
       throw Exception("Erro ao cadastrar serviço: ${e.toString()}");
     }
   }
-
+// Atualiza dados de um serviço existente
   Future<void> atualizarServico({
     required String servicoId,
     required String nome,
@@ -163,7 +163,7 @@ class ServicosController {
       throw Exception("Erro ao atualizar serviço: ${e.toString()}");
     }
   }
-
+// Remove serviço do Firebase
   Future<void> excluirServico(String servicoId) async {
     try {
       await _ref.child('servicos/$servicoId').remove();
@@ -171,7 +171,7 @@ class ServicosController {
       throw Exception("Erro ao excluir serviço: ${e.toString()}");
     }
   }
-
+// Busca serviço específico pelo ID
   Future<Map<String, dynamic>?> buscarServicoPorId(String servicoId) async {
     try {
       final snapshot = await _ref.child('servicos/$servicoId').get();
@@ -187,7 +187,7 @@ class ServicosController {
       throw Exception("Erro ao buscar serviço: ${e.toString()}");
     }
   }
-
+// Busca serviço específico pela categoria
   Future<List<Map<String, dynamic>>> buscarServicosPorCategoria(String categoria) async {
     try {
       final snapshot = await _ref.child('servicos').get();

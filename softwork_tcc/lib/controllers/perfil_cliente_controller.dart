@@ -19,7 +19,7 @@ class PerfilClienteController {
     onDataLoaded = dataCallback;
     onError = errorCallback;
   }
-
+// Carrega dados completos do cliente
   Future<void> carregarDadosCliente(String cpfCnpj) async {
     try {
       isLoading = true;
@@ -37,7 +37,7 @@ class PerfilClienteController {
       onError?.call("Erro ao carregar dados do cliente");
     }
   }
-
+// Busca dados do usuário no Firebase
   Future<void> _buscarDadosUsuario(String cpfCnpj) async {
     try {
       final snapshot = await _ref.child('usuarios/$cpfCnpj').get();

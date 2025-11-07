@@ -21,7 +21,7 @@ class PrestadorNotificacoesController {
     onContadorChanged = contadorCallback;
     onError = errorCallback;
   }
-
+// Inicia escuta em tempo real das notificações do prestador
   Future<void> iniciarListenerNotificacoes(String prestadorCpfCnpj) async {
     try {
       print("=== INICIANDO LISTENER DE NOTIFICAÇÕES ===");
@@ -89,7 +89,7 @@ class PrestadorNotificacoesController {
   }
 
   DateTime? _ultimaNotificacaoMostrada;
-
+// Verifica se notificação é nova e exibe notificação local
   Future<void> _verificarSeENovaNotificacao(Map<String, dynamic> notificacao, String prestadorCpfCnpj) async {
     try {
       DateTime timestampNotificacao = DateTime.parse(notificacao['timestamp']);
@@ -116,7 +116,7 @@ class PrestadorNotificacoesController {
       print("Erro ao verificar nova notificação: $e");
     }
   }
-
+// Marca notificação específica como lida no Firebase
   Future<void> marcarNotificacaoComoLida(String prestadorCpfCnpj, String notificacaoId) async {
     try {
       await _ref.child('usuarios/$prestadorCpfCnpj/notificacoes/$notificacaoId').update({
@@ -127,7 +127,7 @@ class PrestadorNotificacoesController {
       print("Erro ao marcar notificação como lida: $e");
     }
   }
-
+// Marca todas as notificações não lidas como lidas
   Future<void> marcarTodasComoLidas(String prestadorCpfCnpj) async {
     try {
       final snapshot = await _ref.child('usuarios/$prestadorCpfCnpj/notificacoes').get();
